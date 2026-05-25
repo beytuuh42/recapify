@@ -2,6 +2,10 @@
 
 AI-powered summaries of TV shows, movies, and anime. Type a free-text request like *"summarize Attack on Titan season 2 episode 3"* — Recapify parses the intent, fetches the subtitles from OpenSubtitles, and returns a compact episode summary via Gemini.
 
+**Live demo:** https://recapify-frontend.onrender.com
+
+> Hosted on Render free tier — the backend may take 30–60 seconds to wake up on the first request after a period of inactivity.
+
 ## Stack
 
 | Service | Tech | Port |
