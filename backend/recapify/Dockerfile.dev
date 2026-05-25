@@ -1,0 +1,20 @@
+ARG JAVA_VERSION=21
+ARG MAVEN_VERSION=3.9-eclipse-temurin-${JAVA_VERSION}
+
+FROM maven:${MAVEN_VERSION} AS dev
+
+ENV SPRING_PROFILES_ACTIVE=dev
+
+WORKDIR /app
+
+COPY pom.xml .
+RUN --mount=type=cache,target=/root/.m2 mvn -B dependency:go-offline
+
+COPY src ./src
+
+EXPOSE 8080
+EXPOSE 35729
+
+CMD ["mvn", "spring-boot:run", \
+    "-Dspring-boot.run.fork=false", \
+    "-Dspring-boot.run.jvmArguments=-Dspring.devtools.restart.poll-interval=2s -Dspring.devtools.restart.quiet-period=1s"]

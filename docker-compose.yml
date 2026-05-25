@@ -1,0 +1,70 @@
+services:
+  frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: recapify-frontend-prod
+    ports:
+      - 4200:8080
+    restart: unless-stopped
+
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: recapify-frontend-dev
+    depends_on:
+      - backend-dev
+      - ml-dev
+    ports:
+      - 4201:4200
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./frontend/package.json
+    restart: unless-stopped
+  
+  backend-dev:
+    build:
+      context: ./backend/recapify
+      dockerfile: Dockerfile.dev
+    container_name: recapify-backend-dev
+    environment:
+      - LLM_SERVICE_BASEURL=http://ml-dev:8000
+    ports:
+      - 8080:8080
+      - 35729:35729
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/recapify/src
+          target: /app/src
+        - action: rebuild
+          path: ./backend/recapify/pom.xml
+    restart: unless-stopped
+
+  ml-dev:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile.dev
+    container_name: recapify-ml-dev
+    ports:
+      - 8000:8000
+    env_file:
+      - ./ml/.env
+    develop:
+      watch:
+        - action: sync
+          path: ./ml/app
+          target: /app/app
+        - action: sync
+          path: ./ml/prompts
+          target: /app/prompts
+        - action: rebuild
+          path: ./ml/requirements.txt
+    restart: unless-stopped

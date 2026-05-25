@@ -1,0 +1,24 @@
+ARG PYTHON_VERSION=3.12-slim
+
+FROM python:${PYTHON_VERSION} AS dev
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    WATCHFILES_FORCE_POLLING=true
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+# fastapi dev = uvicorn --reload mit Auto-Detection der app-Variable.
+# --host 0.0.0.0 weil fastapi dev sonst nur an 127.0.0.1 bindet
+# (im Container = von außen nicht erreichbar).
+CMD ["fastapi", "dev", "app/main.py", \
+     "--host", "0.0.0.0", \
+     "--port", "8000"]

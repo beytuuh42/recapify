@@ -10,7 +10,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:4200")
+                // Pattern statt Liste: erlaubt jeden localhost-Port (4200 = ng serve,
+                // 4201 = frontend-dev-Container, beliebig andere für Tests).
+                .allowedOriginPatterns("http://localhost:*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");
     }
