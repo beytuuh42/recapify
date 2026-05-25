@@ -1,0 +1,32 @@
+:host {
+    display: block;
+    min-height: 100vh;
+    background: #08101e;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #f5f8ff;
+}
+
+.chat-shell {
+    min-height: 100vh;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-layout {
+    width: min(100%, 960px);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (max-width: 720px) {
+    .chat-shell {
+        padding: 16px;
+    }
+
+    .chat-layout {
+        gap: 14px;
+    }
+}

@@ -1,0 +1,33 @@
+.chat-input {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    padding: 22px 24px;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.chat-input textarea {
+    width: 100%;
+    min-height: 98px;
+    resize: vertical;
+    border: none;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 16px 18px;
+    color: #eef2ff;
+    font-size: 1rem;
+    line-height: 1.6;
+    outline: none;
+}
+
+.chat-input textarea::placeholder {
+    color: #a4b0d6;
+}
+
+@media (max-width: 720px) {
+    .chat-input {
+        grid-template-columns: 1fr;
+    }
+}

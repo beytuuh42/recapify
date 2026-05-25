@@ -1,0 +1,8 @@
+<section class="chat-window">
+
+  @for (message of messages(); track message.id) {
+  <app-message-bubble [role]="message.role" [avatar]="message.avatar" [text]="message.content" />
+  }
+
+
+</section>

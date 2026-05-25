@@ -1,0 +1,38 @@
+.chat-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #7c9eff 0%, #57d9ff 100%);
+    display: grid;
+    place-items: center;
+    color: #08101e;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.brand__text {
+    display: grid;
+    gap: 4px;
+}
+
+.brand__text strong {
+    font-size: 1.2rem;
+}
+
+.brand__text span {
+    font-size: 0.95rem;
+    color: #b7c2e0;
+}
