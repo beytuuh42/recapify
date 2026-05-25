@@ -4,6 +4,8 @@ AI-powered summaries of TV shows, movies, and anime. Type a free-text request li
 
 **Live demo:** https://recapify-frontend.onrender.com
 
+Receiving a summary might take a couple seconds, there is no waiting indicator yet!
+
 > Hosted on Render free tier — the backend may take 30–60 seconds to wake up on the first request after a period of inactivity.
 
 ## Stack
