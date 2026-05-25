@@ -1,5 +1,6 @@
 services:
   frontend-prod:
+    profiles: ["prod"]
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -9,6 +10,7 @@ services:
     restart: unless-stopped
 
   frontend-dev:
+    profiles: ["dev"]
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
@@ -17,7 +19,7 @@ services:
       - backend-dev
       - ml-dev
     ports:
-      - 4201:4200
+      - 4200:4200
     develop:
       watch:
         - action: sync
@@ -28,8 +30,9 @@ services:
         - action: rebuild
           path: ./frontend/package.json
     restart: unless-stopped
-  
+
   backend-dev:
+    profiles: ["dev"]
     build:
       context: ./backend/recapify
       dockerfile: Dockerfile.dev
@@ -49,6 +52,7 @@ services:
     restart: unless-stopped
 
   ml-dev:
+    profiles: ["dev"]
     build:
       context: ./ml
       dockerfile: Dockerfile.dev
