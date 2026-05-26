@@ -73,7 +73,10 @@ Inferred from current code; follow them unless the user says otherwise.
 ## PR & branching
 
 - Feature branches off `main`, PR back to `main`, **merge commits** (not squash) — preserves history.
+- **Branch names:** short, lowercase, hyphenated, describe the change. e.g. `add-agents-md`, `fix-cors-prod`, `refactor-llm-client`. Do **not** use auto-generated harness names like `claude/zen-diffie-…`; rename before pushing.
+- **Commit messages:** no `Co-Authored-By: Claude …` trailer, no "Generated with Claude Code" footer, no tool/agent self-attribution of any kind. Plain conventional messages only.
 - Keep PRs scoped to one concern. If a change touches more than one service, call that out in the PR body.
+- PR bodies: no tool self-attribution footers either.
 - Render auto-deploys from `main`; assume any merge ships to production.
 
 ## Vocabulary
