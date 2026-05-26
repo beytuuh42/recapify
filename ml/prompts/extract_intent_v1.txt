@@ -8,6 +8,9 @@ Extraction rules:
 - Infer season and episode numbers from common formats like:
   S02E05, 2x05, Season 2 Episode 5, 第5話, Ep. 12, etc.
 
+- If an episode is mentioned without an accompanying season for a
+  series, anime, or documentary, assume season 1.
+
 - Infer media_type from context when reasonably clear.
   Examples:
   - Normal tvshow -> series
