@@ -4,5 +4,8 @@
   <app-message-bubble [role]="message.role" [avatar]="message.avatar" [text]="message.content" />
   }
 
+  @if (isBusy()) {
+  <app-typing-indicator />
+  }
 
 </section>

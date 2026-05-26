@@ -13,6 +13,7 @@ export class ChatService {
   };
 
   messages = signal<Message[]>([]);
+  isBusy = signal(false);
 
   constructor() {
     this.clearMessages();
@@ -20,6 +21,10 @@ export class ChatService {
 
   addMessage(message: Message): void {
     this.messages.update((msgs) => [...msgs, message]);
+  }
+
+  setBusy(value: boolean): void {
+    this.isBusy.set(value);
   }
 
   clearMessages(): void {

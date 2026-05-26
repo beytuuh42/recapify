@@ -10,26 +10,43 @@ import { ChatService } from '../../services/chat.service';
 export class ChatInputComponent {
   llmService = inject(LlmService);
   chatService = inject(ChatService);
+  isBusy = this.chatService.isBusy;
 
   send(textarea: HTMLTextAreaElement) {
-    let message: Message = {
+    if (this.isBusy()) return;
+
+    const text = textarea.value;
+    const message: Message = {
       id: crypto.randomUUID(),
       role: Role.user,
       avatar: 'U',
-      content: textarea.value
+      content: text
     };
 
     this.chatService.addMessage(message);
-    //TODO: add error handling
-    console.log(textarea.value);
-    this.llmService.getSummary(textarea.value).subscribe((data: Summary) => {
-      this.chatService.addMessage({
-        id: crypto.randomUUID(),
-        role: Role.assistant,
-        avatar: 'A',
-        content: data.content
-      });
-    });
     textarea.value = '';
+    this.chatService.setBusy(true);
+
+    this.llmService.getSummary(text).subscribe({
+      next: (data: Summary) => {
+        this.chatService.addMessage({
+          id: crypto.randomUUID(),
+          role: Role.assistant,
+          avatar: 'A',
+          content: data.content
+        });
+        this.chatService.setBusy(false);
+      },
+      error: (err) => {
+        console.error('getSummary failed', err);
+        this.chatService.addMessage({
+          id: crypto.randomUUID(),
+          role: Role.assistant,
+          avatar: 'A',
+          content: 'Sorry, something went wrong while generating the summary. Please try again.'
+        });
+        this.chatService.setBusy(false);
+      }
+    });
   }
 }
