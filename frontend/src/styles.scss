@@ -24,10 +24,24 @@
     transform: translateY(-1px);
 }
 
+.btn:disabled {
+    cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+    transform: none;
+}
+
 .btn--primary {
     background: #7c9eff;
     color: #08101e;
     box-shadow: 0 18px 50px rgba(124, 158, 255, 0.2);
+}
+
+.btn--primary:disabled {
+    background: rgba(255, 255, 255, 0.08);
+    color: #6b7591;
+    box-shadow: none;
 }
 
 .btn--secondary {

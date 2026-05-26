@@ -1,4 +1,4 @@
 <footer class="chat-input">
   <textarea #messageInput placeholder="Type a message..." rows="1"></textarea>
-  <button (click)="send(messageInput)" type="button" class="btn btn--primary">Send</button>
+  <button (click)="send(messageInput)" [disabled]="isBusy()" type="button" class="btn btn--primary">Send</button>
 </footer>
