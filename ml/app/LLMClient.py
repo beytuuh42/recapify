@@ -1,12 +1,9 @@
 import os
-import time
-from pathlib import Path
-from typing import Optional, Type, TypeVar
 
-from google import genai
-from google.genai import types
 from google.genai.errors import ServerError
-from pydantic import BaseModel
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langsmith import Client
+
 from models import (
     LLMProvider,
     TranscriptChunk,
@@ -16,8 +13,6 @@ from models import (
 )
 from errors import ModelUnavailableError
 
-T = TypeVar("T", bound=BaseModel)
-
 
 class LLMClient:
     def __init__(
@@ -25,111 +20,104 @@ class LLMClient:
         provider: LLMProvider,
         chunk_model: str = "gemini-3.1-flash-lite",
         merge_model: str = "gemini-3-flash",
+        intent_model: str = "gemma-4-31b-it",
     ):
-        self.provider = provider
-        self.client: Optional[genai.Client]
-
-        if provider == LLMProvider.GEMINI:
-            api_key = os.getenv("GEMINI_API_KEY")
-            if not api_key:
-                raise ValueError("GEMINI_API_KEY is not configured.")
-
-            self.chunk_model = chunk_model
-            self.merge_model = merge_model
-            self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        else:
+        if provider != LLMProvider.GEMINI:
             raise ValueError(f"Unsupported LLM provider: {provider}")
 
-    def _generate_cache(self, model: str, prompt: str):
-        # TODO: check if LLM result can be cached directly to prevent wasting tokens / api requests
-        cache = self.client.caches.create(
-            model=model,
-            config=types.CreateCachedContentConfig(
-                contents=[], system_instruction=prompt
-            ),
-        )
-        return cache
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY is not configured.")
 
-    def _generate_structured(
-        self, prompt: str, response_schema: Type[T], model: str
-    ) -> T:
-        try:
-            response = self.client.models.generate_content(
-                model=model,
-                contents=prompt,
-                config={
-                    "response_mime_type": "application/json",
-                    "response_json_schema": response_schema.model_json_schema(),
-                },
+        self.provider = provider
+        self.chunk_model = chunk_model
+        self.merge_model = merge_model
+        self.intent_model = intent_model
+
+        # TODO: add content class for dynamic model calling
+
+        chunk_model_chain = (
+            ChatGoogleGenerativeAI(model=chunk_model, api_key=api_key)
+            .with_structured_output(ChunkSummary)
+            .with_retry(
+                retry_if_exception_type=(ServerError,),
+                stop_after_attempt=5,
             )
+        )
 
-            if not response.text:
-                raise ValueError("LLM response was empty.")
+        merge_model_chain = ChatGoogleGenerativeAI(
+            model=merge_model, api_key=api_key
+        ).with_structured_output(EpisodeSummary)
 
-            return response_schema.model_validate_json(response.text)
+        intent_model_chain = ChatGoogleGenerativeAI(
+            model=intent_model,
+            api_key=api_key,
+            temperature=1.0,
+            include_thoughts=True,
+        ).with_structured_output(SummarizeRequest)
+
+        self.prompt_client = Client()
+
+        self._intent_prompt = self.prompt_client.pull_prompt("extract_intent")
+        self._intent_chain = self._intent_prompt | intent_model_chain
+
+        self._chunk_prompt = self.prompt_client.pull_prompt("summarize_chunk")
+        self._chunk_chain = self._chunk_prompt | chunk_model_chain
+
+        self._merge_prompt = self.prompt_client.pull_prompt("merge_episode_summary")
+        self._merge_chain = self._merge_prompt | merge_model_chain
+
+    def _invoke_structured(self, chain, prompt):
+        try:
+            return chain.invoke(prompt)
         except ServerError as e:
-            err = e.response.json()["error"]
-
             raise ModelUnavailableError(
-                code=err["code"],
-                status=err["status"],
-                message=err["message"],
+                code=e.code,
+                status=e.status,
+                message=e.message,
             ) from e
 
-    def extract_intent(self, text: str) -> SummarizeRequest:
-        prompt = "" + text
-        resp: SummarizeRequest = self._generate_structured(
-            prompt, SummarizeRequest, self.chunk_model
-        )
-        return resp
+    def extract_intent(self, message: str) -> SummarizeRequest:
+        [variable] = self._intent_prompt.input_variables
+        return self._invoke_structured(self._intent_chain, {variable: message})
 
-    def summarize_chunks(self, chunk: TranscriptChunk) -> ChunkSummary:
-        prompt_template = self._load_prompt("prompt_summarize_chunk.txt")
+    def summarize_chunks(self, chunks: list[TranscriptChunk]) -> list[ChunkSummary]:
+        [variable] = self._chunk_prompt.input_variables
 
         # TODO: verify if these params are needed for the prompt
-        prompt = (
-            f"{prompt_template}\n\n"
-            f"CHUNK_NUMBER:\n{chunk.chunk_number}\n\n"
-            f"START_TIME:\n{chunk.start_time or 'unknown'}\n\n"
-            f"END_TIME:\n{chunk.end_time or 'unknown'}\n\n"
-            f"TRANSCRIPT_CHUNK:\n{chunk.text}"
-        )
+        inputs = [
+            {
+                variable: (
+                    f"CHUNK_NUMBER:\n{chunk.chunk_number}\n\n"
+                    f"START_TIME:\n{chunk.start_time or 'unknown'}\n\n"
+                    f"END_TIME:\n{chunk.end_time or 'unknown'}\n\n"
+                    f"TRANSCRIPT_CHUNK:\n{chunk.text}"
+                )
+            }
+            for chunk in chunks
+        ]
 
-        # TODO: maybe refactor this somewhere else, idk where or how. could use retry_attempt into the method signature?
-        MAX_RETRIES = 5
-
-        for attempt in range(MAX_RETRIES):
-            try:
-                return self._generate_structured(prompt, ChunkSummary, self.chunk_model)
-            except ModelUnavailableError:
-                if attempt == MAX_RETRIES - 1:
-                    raise
-
-                time.sleep(2**attempt)
+        try:
+            return self._chunk_chain.batch(inputs)
+        except ServerError as e:
+            raise ModelUnavailableError(
+                code=e.code,
+                status=e.status,
+                message=e.message,
+            ) from e
 
     def merge_chunk_summaries(
         self, chunk_summaries: list[ChunkSummary]
     ) -> EpisodeSummary:
-        prompt_template = self._load_prompt("prompt_merge_episode_summary.txt")
+        [variable] = self._merge_prompt.input_variables
 
         summaries_json = [
             summary.model_dump(mode="json") for summary in chunk_summaries
         ]
 
-        prompt = f"{prompt_template}\n\n" f"CHUNK_SUMMARIES:\n{summaries_json}"
-
-        episode_summary = self._generate_structured(
-            prompt, EpisodeSummary, self.merge_model
+        episode_summary = self._invoke_structured(
+            self._merge_chain, {variable: f"CHUNK_SUMMARIES:\n{summaries_json}"}
         )
         episode_summary.chunk_summaries = chunk_summaries
 
         return episode_summary
-
-    @staticmethod
-    def _load_prompt(filename: str) -> str:
-        prompt_path = Path("prompts") / filename
-
-        if not prompt_path.exists():
-            raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
-
-        return prompt_path.read_text(encoding="UTF-8")

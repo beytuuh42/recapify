@@ -16,14 +16,13 @@ from LLMClient import LLMClient
 from srt_handler import SrtHandler
 
 from errors import ModelUnavailableError
-from concurrent.futures import ThreadPoolExecutor
 import cache
 
 app = FastAPI()
 llm = LLMClient(LLMProvider.GEMINI, merge_model="gemini-2.5-flash")
 srt_handler = SrtHandler()
 
-
+# Raw model kept only for the /api/v1/chat testing endpoint.
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 model = ChatGoogleGenerativeAI(
@@ -34,13 +33,6 @@ model = ChatGoogleGenerativeAI(
     max_retries=2,
     include_thoughts=True,
 )
-
-structured_model = model.bind(include_thoughts=True).with_structured_output(
-    SummarizeRequest.model_json_schema(), include_raw=True
-)
-
-from langchain_core.messages import HumanMessage, SystemMessage
-from pathlib import Path
 
 
 @app.get("/api/v1/subtitles")
@@ -56,17 +48,7 @@ def get_subtitle(
 
 @app.post("/api/v1/intent", response_model=SummarizeRequest)
 def extract_intent(message: str) -> SummarizeRequest:
-    prompt_path = Path("prompts") / "extract_intent_v1.txt"
-
-    if not prompt_path.exists():
-        raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
-
-    messages = [
-        SystemMessage(content=prompt_path.read_text(encoding="UTF-8")),
-        HumanMessage(content=message),
-    ]
-    structured_response = structured_model.invoke(messages)
-    return structured_response["parsed"]
+    return llm.extract_intent(message)
 
 
 @app.post("/api/v1/chat")
@@ -90,11 +72,8 @@ def create_summary(request: SummarizeRequest) -> EpisodeSummary:
         )
     )
 
-    chunk_summaries: List[ChunkSummary] = []
-
     try:
-        with ThreadPoolExecutor() as executor:
-            chunk_summaries = list(executor.map(llm.summarize_chunks, chunks))
+        chunk_summaries: List[ChunkSummary] = llm.summarize_chunks(chunks)
     except ModelUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
