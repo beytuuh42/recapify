@@ -36,7 +36,7 @@ Open http://localhost:4200.
 ## API keys
 
 In `ml/.env`:
-- `GEMINI_API_KEY` — https://aistudio.google.com/apikey
+- `GOOGLE_API_KEY` — https://aistudio.google.com/apikey
 - `OPEN_SUBTITLES_API_KEY`, `OPEN_SUBTITLES_USER`, `OPEN_SUBTITLES_PASSWORD` — https://www.opensubtitles.com/
 
 ## Project layout
