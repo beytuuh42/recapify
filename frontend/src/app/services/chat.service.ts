@@ -23,6 +23,12 @@ export class ChatService {
     this.messages.update((msgs) => [...msgs, message]);
   }
 
+  appendToMessage(id: Message['id'], delta: string): void {
+    this.messages.update((msgs) =>
+      msgs.map((m) => (m.id === id ? { ...m, content: m.content + delta } : m))
+    );
+  }
+
   setBusy(value: boolean): void {
     this.isBusy.set(value);
   }
