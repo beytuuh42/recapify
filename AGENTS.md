@@ -19,8 +19,7 @@ recapify/
 ├── frontend/              # Angular 19 (Signals), served on :4200
 ├── backend/recapify/      # Spring Boot 4 / Java 21, served on :8080
 ├── ml/                    # FastAPI + LangChain + google-genai, served on :8000
-│   ├── app/               # Source (main.py, LLMClient.py, srt_handler.py, …)
-│   └── prompts/           # LLM prompt templates — see "Off-limits"
+│   └── app/               # Source (main.py, LLMClient.py, srt_handler.py, …)
 └── docker-compose.yml     # `dev` and `prod` profiles
 ```
 
@@ -39,11 +38,11 @@ Per-service, outside Docker:
 
 | Service  | Install / setup            | Run                                          | Test                  |
 |----------|----------------------------|----------------------------------------------|-----------------------|
-| frontend | `npm install`              | `npm start` (ng serve)                       | `npm test` (Karma)    |
+| frontend | `npm install`              | `npm start` (ng serve)                       | `npm test` (Vitest)   |
 | backend  | (mvnw is checked in)       | `./mvnw spring-boot:run`                     | `./mvnw test`         |
-| ml       | `pip install -r requirements.txt` | `uvicorn app.main:app --reload --port 8000` | none                  |
+| ml       | `pip install -r requirements.txt` | `uvicorn app.main:app --reload --port 8000` | `python -m unittest discover -s tests` |
 
-There is **no test suite** at the moment across any service — placeholder specs only. Do not invent CI assumptions.
+Each service now has focused unit tests. Keep new tests close to the code they cover and do not assume broader CI coverage than what exists in the repo.
 
 ## Key files & wiring
 
@@ -56,7 +55,6 @@ There is **no test suite** at the moment across any service — placeholder spec
 
 Do **not** modify these without an explicit ask from the maintainer:
 
-- **`ml/prompts/*.txt`** — hand-tuned LLM prompts. Wording, structure, and example formatting are load-bearing.
 - **`pom.xml`, `frontend/package.json`, `ml/requirements.txt`** — no dependency adds, bumps, or removals. Lockfile churn included.
 - **`frontend/set-env.js`** — touch only if the user asked; comments in the file document past Render deploy footguns (don't read `NODE_ENV`, ensure trailing slash).
 - **`.claude/`, `/plans/`, `/scratch/`** — gitignored working dirs; never commit anything under them.
@@ -67,7 +65,7 @@ Inferred from current code; follow them unless the user says otherwise.
 
 - **Frontend (Angular 19):** standalone components, Signals-based state, single quotes in TS, 2-space indent (enforced by `.editorconfig`). Component files colocate `.ts` / `.html` / `.scss` / `.spec.ts` under `src/app/components/<name>/`.
 - **Backend (Spring Boot / Java 21):** package root `com.recapify`, feature packages (`llm/`, `controllers/`). Lombok is on the annotation processor path — prefer `@Data`/`@RequiredArgsConstructor` over hand-written boilerplate. Use `WebClient` (already configured in [WebClientConfig.java](backend/recapify/src/main/java/com/recapify/WebClientConfig.java)) for outbound HTTP, not `RestTemplate`.
-- **ML (Python / FastAPI):** routes live in [main.py](ml/app/main.py), Pydantic models in [models.py](ml/app/models.py). All public endpoints are versioned under `/api/v1/`. The cache layer ([cache.py](ml/app/cache.py)) is keyed by `(title, season, episode, language)`.
+- **ML (Python / FastAPI):** routes live in [main.py](ml/app/main.py), Pydantic models in [models.py](ml/app/models.py). Prompt definitions are pulled from LangSmith in [LLMClient.py](ml/app/LLMClient.py). All public endpoints are versioned under `/api/v1/`. The cache layer ([cache.py](ml/app/cache.py)) is keyed by `(title, season, episode, language)`.
 - **API surface contract:** both backend and ml expose `/api/v1/...`. Keep that prefix when adding endpoints so the frontend's `${apiUrl}api/v1/...` concatenation keeps working.
 
 ## PR & branching

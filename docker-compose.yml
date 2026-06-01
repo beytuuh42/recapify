@@ -66,9 +66,6 @@ services:
         - action: sync
           path: ./ml/app
           target: /app/app
-        - action: sync
-          path: ./ml/prompts
-          target: /app/prompts
         - action: rebuild
           path: ./ml/requirements.txt
     restart: unless-stopped
