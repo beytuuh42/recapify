@@ -125,6 +125,18 @@ Development ports:
 | ML service | http://localhost:8000 |
 | ML API docs | http://localhost:8000/docs |
 
+## Testing
+
+Run the focused unit tests from each service directory:
+
+```bash
+cd frontend && npm test
+cd backend/recapify && ./mvnw test
+cd ml && python -m unittest discover -s tests
+```
+
+The frontend suite runs on Vitest, the backend suite uses JUnit, and the ML service uses standard-library `unittest`.
+
 ## Observability and Debugging
 
 Frontend events, errors, traces, and logs are sent to Sentry when a Sentry DSN is configured. In local development, browser console output is also useful for inspecting the frontend flow.
@@ -170,8 +182,8 @@ LLM_SERVICE_BASEURL=http://ml-dev:8000
 - The hosted demo runs on a free tier, so cold starts can make the first request slow.
 - Subtitle availability and quality depend on OpenSubtitles results.
 - The backend currently acts mainly as an API boundary and service orchestration layer.
-- The repository has placeholder Angular and Spring Boot tests, but no comprehensive automated test suite yet.
-- Possible next steps include better media matching, saved summary history, user accounts, stronger test coverage, and production deployment hardening.
+- Focused unit tests now exist for all three services, but broader end-to-end coverage is still limited.
+- Possible next steps include user accounts, multiple conversation history, richer recap output beyond a plain summary, smarter transcript chunking to reduce context loss, more model providers, free-model fallbacks, dynamic model selection based on task, and expanded summary modes such as movie, multi-episode, season, and multi-season recaps.
 
 ## Project Structure
 
@@ -180,7 +192,6 @@ recapify/
 |-- frontend/              Angular chat UI
 |-- backend/recapify/      Spring Boot API service
 |-- ml/                    FastAPI ML service
-|   |-- app/               ML service source
-|   `-- prompts/           Prompt templates
+|   `-- app/               ML service source
 `-- docker-compose.yml     Dev and production container profiles
 ```
