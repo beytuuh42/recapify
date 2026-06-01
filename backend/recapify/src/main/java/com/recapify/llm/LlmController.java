@@ -1,6 +1,7 @@
 package com.recapify.llm;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -8,19 +9,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Slf4j
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/llm")
 public class LlmController {
 
     private final LlmService llmService;
 
-    @Autowired
-    public LlmController(LlmService llmService) {
-        this.llmService = llmService;
-    }
-
     @PostMapping("/summary")
     ResponseEntity<Summary> createSummary(@RequestBody String text) {
-        Summary res = llmService.getSummary(text);
-        return ResponseEntity.ok(res);
+        log.info("Summary request received textLength={}", text.length());
+        Summary summary = llmService.getSummary(text);
+        log.info("Summary request completed summaryLength={}", summary.content().length());
+        return ResponseEntity.ok(summary);
     }
 }

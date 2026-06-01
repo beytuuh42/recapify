@@ -1,4 +1,6 @@
+import logging
 import os
+import time
 
 from google.genai.errors import ServerError
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -12,6 +14,8 @@ from models import (
     SummarizeRequest,
 )
 from errors import ModelUnavailableError
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClient:
@@ -78,10 +82,16 @@ class LLMClient:
             ) from e
 
     def extract_intent(self, message: str) -> SummarizeRequest:
+        started_at = time.perf_counter()
         [variable] = self._intent_prompt.input_variables
-        return self._invoke_structured(self._intent_chain, {variable: message})
+        logger.info("Invoking intent model model=%s messageLength=%s", self.intent_model, len(message))
+        intent = self._invoke_structured(self._intent_chain, {variable: message})
+        duration_ms = round((time.perf_counter() - started_at) * 1000)
+        logger.info("Intent model completed durationMs=%s", duration_ms)
+        return intent
 
     def summarize_chunks(self, chunks: list[TranscriptChunk]) -> list[ChunkSummary]:
+        started_at = time.perf_counter()
         [variable] = self._chunk_prompt.input_variables
 
         # TODO: verify if these params are needed for the prompt
@@ -98,8 +108,18 @@ class LLMClient:
         ]
 
         try:
-            return self._chunk_chain.batch(inputs)
+            logger.info(
+                "Invoking chunk model model=%s chunkCount=%s",
+                self.chunk_model,
+                len(chunks),
+            )
+            summaries = self._chunk_chain.batch(inputs)
+            duration_ms = round((time.perf_counter() - started_at) * 1000)
+            logger.info("Chunk model completed chunkCount=%s durationMs=%s", len(summaries), duration_ms)
+            return summaries
         except ServerError as e:
+            duration_ms = round((time.perf_counter() - started_at) * 1000)
+            logger.exception("Chunk model failed durationMs=%s", duration_ms)
             raise ModelUnavailableError(
                 code=e.code,
                 status=e.status,
@@ -109,15 +129,23 @@ class LLMClient:
     def merge_chunk_summaries(
         self, chunk_summaries: list[ChunkSummary]
     ) -> EpisodeSummary:
+        started_at = time.perf_counter()
         [variable] = self._merge_prompt.input_variables
 
         summaries_json = [
             summary.model_dump(mode="json") for summary in chunk_summaries
         ]
 
+        logger.info(
+            "Invoking merge model model=%s chunkSummaryCount=%s",
+            self.merge_model,
+            len(chunk_summaries),
+        )
         episode_summary = self._invoke_structured(
             self._merge_chain, {variable: f"CHUNK_SUMMARIES:\n{summaries_json}"}
         )
         episode_summary.chunk_summaries = chunk_summaries
 
+        duration_ms = round((time.perf_counter() - started_at) * 1000)
+        logger.info("Merge model completed durationMs=%s", duration_ms)
         return episode_summary

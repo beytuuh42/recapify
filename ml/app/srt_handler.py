@@ -1,5 +1,7 @@
+import logging
 import os
 import re
+import time
 
 from datetime import timedelta
 from typing import List
@@ -7,6 +9,8 @@ from models import TranscriptChunk
 
 import srt
 from opensubtitlescom import OpenSubtitles, responses
+
+logger = logging.getLogger(__name__)
 
 
 class SrtHandler:
@@ -21,6 +25,14 @@ class SrtHandler:
     def find_subtitle(
         self, title: str, season_number: int, episode_number: int, languages: str = "en"
     ) -> list:
+        started_at = time.perf_counter()
+        logger.info(
+            "Searching subtitles title=%s season=%s episode=%s language=%s",
+            title,
+            season_number,
+            episode_number,
+            languages,
+        )
         response = self.subtitles.search(
             query=title,
             season_number=season_number,
@@ -29,13 +41,30 @@ class SrtHandler:
             order_by=["download_count"],
         )
 
+        duration_ms = round((time.perf_counter() - started_at) * 1000)
+        logger.info(
+            "Subtitle search completed resultCount=%s durationMs=%s",
+            len(response.data),
+            duration_ms,
+        )
         return response
 
     def fetch_subtitle(
         self, title: str, season_number: int, episode_number: int, languages: str = "en"
     ) -> list:
+        started_at = time.perf_counter()
         response = self.find_subtitle(title, season_number, episode_number, languages)
         srt = self.subtitles.download_and_parse(response.data[0])
+        duration_ms = round((time.perf_counter() - started_at) * 1000)
+        logger.info(
+            "Subtitle downloaded title=%s season=%s episode=%s language=%s subtitleCount=%s durationMs=%s",
+            title,
+            season_number,
+            episode_number,
+            languages,
+            len(srt),
+            duration_ms,
+        )
         return srt
 
     def _clean_subtitle_content(self, content: str) -> str:
@@ -54,6 +83,7 @@ class SrtHandler:
     def subtitles_to_chunks(
         self, subtitles: List[srt.Subtitle]
     ) -> List[TranscriptChunk]:
+        started_at = time.perf_counter()
         chunk_duration = timedelta(minutes=8)
         chunks: List[TranscriptChunk] = []
 
@@ -95,4 +125,11 @@ class SrtHandler:
                 )
             )
 
+        duration_ms = round((time.perf_counter() - started_at) * 1000)
+        logger.info(
+            "Subtitles converted to chunks subtitleCount=%s chunkCount=%s durationMs=%s",
+            len(subtitles),
+            len(chunks),
+            duration_ms,
+        )
         return chunks
