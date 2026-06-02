@@ -54,7 +54,7 @@ jobs:
           cache: maven
 
       - name: Run tests
-        run: ./mvnw -B test
+        run: bash ./mvnw -B test
 
   ml-tests:
     name: ML tests
