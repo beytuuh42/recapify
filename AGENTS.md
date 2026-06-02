@@ -44,6 +44,28 @@ Per-service, outside Docker:
 
 Each service now has focused unit tests. Keep new tests close to the code they cover and do not assume broader CI coverage than what exists in the repo.
 
+## Verification policy
+
+Default verification is log inspection with `docker logs` for the service that was changed. Use that first for startup/runtime checks.
+
+After making changes, verify by inspecting logs for the service that was changed:
+
+| Changed area | Verification command |
+|--------------|----------------------|
+| `frontend/` | `docker logs --tail 200 recapify-frontend-dev` |
+| `backend/recapify/` | `docker logs --tail 200 recapify-backend-dev` |
+| `ml/` | `docker logs --tail 200 recapify-ml-dev` |
+
+If a change touches multiple services, inspect each relevant container log. Keep commands standalone; do not combine them with `;`, `&&`, pipes, loops, redirection, or command substitution.
+
+Build, test, Docker compose, Maven, npm, Python, curl, and API smoke commands are allowed when the user explicitly asks for them, when you need stronger validation for the change, or when you are fixing a failing check.
+
+Log inspection may only catch startup or runtime errors that were logged; it does not prove compilation, tests, or behavior unless those checks were explicitly requested.
+
+## Change scope
+
+Keep changes scoped to the requested behavior. Do not refactor unrelated code, rename files, change dependencies, reformat broad areas, or churn generated files unless explicitly requested.
+
 ## Key files & wiring
 
 - [docker-compose.yml](docker-compose.yml) — `dev` profile uses `Dockerfile.dev` + `develop.watch` per service; `prod` profile builds only `frontend-prod`.
@@ -58,6 +80,8 @@ Do **not** modify these without an explicit ask from the maintainer:
 - **`pom.xml`, `frontend/package.json`, `ml/requirements.txt`** — no dependency adds, bumps, or removals. Lockfile churn included.
 - **`frontend/set-env.js`** — touch only if the user asked; comments in the file document past Render deploy footguns (don't read `NODE_ENV`, ensure trailing slash).
 - **`.claude/`, `/plans/`, `/scratch/`** — gitignored working dirs; never commit anything under them.
+
+If a requested change appears to require touching an off-limits file, stop and ask first.
 
 ## Conventions
 
@@ -76,6 +100,26 @@ Inferred from current code; follow them unless the user says otherwise.
 - Keep PRs scoped to one concern. If a change touches more than one service, call that out in the PR body.
 - PR bodies: no tool self-attribution footers either.
 - Render auto-deploys from `main`; assume any merge ships to production.
+
+## Worktrees & multi-agent work
+
+Use Git worktrees when multiple agents or CLIs may work at the same time. A branch is the line of work; a worktree is the folder where that branch is checked out.
+
+Prefer explicit sibling worktrees outside the main checkout, for example:
+
+```
+../recapify-agent-frontend
+../recapify-agent-backend
+../recapify-agent-ml
+```
+
+Each agent should work in its assigned worktree and branch. Do not edit another agent's worktree unless explicitly asked.
+
+For independent features, use separate branches and separate worktrees. For shared features, prefer separate sub-branches/worktrees and merge them into an integration branch after review.
+
+Before editing, check the current branch and working tree status. Do not overwrite, revert, clean, or delete changes made by another agent unless explicitly instructed.
+
+Do not push auto-generated worktree or agent branch names. Rename temporary branches to short, descriptive names before pushing.
 
 ## Vocabulary
 
