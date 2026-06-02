@@ -121,6 +121,8 @@ Before editing, check the current branch and working tree status. Do not overwri
 
 Do not push auto-generated worktree or agent branch names. Rename temporary branches to short, descriptive names before pushing.
 
+After a PR is merged and the branch's changes are in `main`, delete the local branch and remove its worktree instead of leaving stale copies behind.
+
 ## Vocabulary
 
 - **Intent** — the structured `SummarizeRequest` (`title`, `season`, `episode`, `language`) parsed from free-text user input by the ml `/api/v1/intent` endpoint.
