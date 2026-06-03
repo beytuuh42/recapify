@@ -154,11 +154,14 @@ describe('ChatInputComponent', () => {
     expect(chatService.messages().at(-1)?.content).toBe('Hello world');
     expect(logger.info).toHaveBeenCalledWith('Summary reveal completed', {
       messageId: assistantMessage?.id,
-      wordCount: 2
+      summary: {
+        wordCount: 2,
+        characterCount: 'Hello world'.length
+      }
     });
   });
 
-  it('submits on Enter and keeps Shift+Enter for multiline input', () => {
+  it('submits on Enter', () => {
     const pendingSummary = new Subject<Summary>();
     llmService.getSummary.mockReturnValue(pendingSummary.asObservable());
     fixture.detectChanges();
@@ -177,6 +180,12 @@ describe('ChatInputComponent', () => {
 
     expect(enterEvent.defaultPrevented).toBe(true);
     expect(llmService.getSummary).toHaveBeenCalledWith('summarize Severance season 1 episode 1');
+  });
+
+  it('keeps Shift+Enter for multiline input', () => {
+    fixture.detectChanges();
+
+    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
 
     textarea.value = 'line 1';
     const shiftEnterEvent = new KeyboardEvent('keydown', {
@@ -189,5 +198,6 @@ describe('ChatInputComponent', () => {
     textarea.dispatchEvent(shiftEnterEvent);
 
     expect(shiftEnterEvent.defaultPrevented).toBe(false);
+    expect(llmService.getSummary).not.toHaveBeenCalled();
   });
 });

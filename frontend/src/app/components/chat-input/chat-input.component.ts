@@ -60,7 +60,8 @@ export class ChatInputComponent {
   private typeOut(text: string) {
     const id = crypto.randomUUID();
     const characters = Array.from(text);
-    const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+    const trimmedText = text.trim();
+    const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0;
     const charactersPerTick = Math.max(
       1,
       Math.round(
@@ -70,8 +71,14 @@ export class ChatInputComponent {
 
     this.logger.info('Starting summary reveal', {
       messageId: id,
-      wordCount,
-      characterCount: text.length
+      summary: {
+        wordCount,
+        characterCount: text.length
+      },
+      reveal: {
+        charactersPerTick,
+        intervalMs: ChatInputComponent.REVEAL_INTERVAL_MS
+      }
     });
 
     this.chatService.addMessage({ id, role: Role.assistant, avatar: 'A', content: '' });
@@ -87,7 +94,10 @@ export class ChatInputComponent {
         clearInterval(timer);
         this.logger.info('Summary reveal completed', {
           messageId: id,
-          wordCount
+          summary: {
+            wordCount,
+            characterCount: text.length
+          }
         });
       }
     }, ChatInputComponent.REVEAL_INTERVAL_MS);
