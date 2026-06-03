@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { LlmService } from '../../services/llm.service';
 import { Role, Summary } from '../../models/summary.model';
 import { ChatService } from '../../services/chat.service';
 import { AppLoggerService } from '../../services/app-logger.service';
+
 @Component({
   selector: 'app-chat-input',
   templateUrl: './chat-input.component.html',
@@ -13,7 +14,9 @@ export class ChatInputComponent {
   chatService = inject(ChatService);
   logger = inject(AppLoggerService);
   isBusy = this.chatService.isBusy;
-  private static readonly WORD_INTERVAL_MS = 45;
+  hasConversation = computed(() => this.chatService.messages().length > 1);
+  private static readonly REVEAL_INTERVAL_MS = 16;
+  private static readonly CHARACTERS_PER_SECOND = 180;
 
   send(textarea: HTMLTextAreaElement) {
     if (this.isBusy()) {
@@ -21,7 +24,12 @@ export class ChatInputComponent {
       return;
     }
 
-    const text = textarea.value;
+    const text = textarea.value.trim();
+    if (!text) {
+      this.logger.debug('Ignored empty summary submission');
+      return;
+    }
+
     this.logger.info('Summary submission started', {
       textLength: text.length
     });
@@ -48,14 +56,21 @@ export class ChatInputComponent {
     });
   }
 
-  // Reveal the response one word at a time at a fixed interval.
+  // Reveal the response in small character batches for smoother motion.
   private typeOut(text: string) {
     const id = crypto.randomUUID();
-    const words = text.split(/(?<=\s)/); // keep each word's trailing whitespace
+    const characters = Array.from(text);
+    const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+    const charactersPerTick = Math.max(
+      1,
+      Math.round(
+        (ChatInputComponent.CHARACTERS_PER_SECOND * ChatInputComponent.REVEAL_INTERVAL_MS) / 1000
+      )
+    );
 
     this.logger.info('Starting summary reveal', {
       messageId: id,
-      wordCount: words.length,
+      wordCount,
       characterCount: text.length
     });
 
@@ -64,14 +79,26 @@ export class ChatInputComponent {
 
     let i = 0;
     const timer = setInterval(() => {
-      this.chatService.appendToMessage(id, words[i++] ?? '');
-      if (i >= words.length) {
+      const nextChunk = characters.slice(i, i + charactersPerTick).join('');
+      i += nextChunk.length;
+      this.chatService.appendToMessage(id, nextChunk);
+
+      if (i >= characters.length) {
         clearInterval(timer);
         this.logger.info('Summary reveal completed', {
           messageId: id,
-          wordCount: words.length
+          wordCount
         });
       }
-    }, ChatInputComponent.WORD_INTERVAL_MS);
+    }, ChatInputComponent.REVEAL_INTERVAL_MS);
+  }
+
+  handleKeydown(event: KeyboardEvent, textarea: HTMLTextAreaElement) {
+    if (event.key !== 'Enter' || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    this.send(textarea);
   }
 }
