@@ -67,4 +67,25 @@
     opacity: 0.85;
     line-height: 1.5;
   }
+
+  &__reveal-item {
+    animation: episode-summary-reveal 0.25s ease-out;
+  }
+}
+
+@keyframes episode-summary-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .episode-summary__reveal-item {
+    animation: none;
+  }
 }

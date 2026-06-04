@@ -3,21 +3,21 @@
 
   <p class="episode-summary__recap">{{ revealedText() }}</p>
 
-  @if (sectionsVisible()) {
-
-  @if (summary.key_events.length) {
+  @if (revealedKeyEvents() > 0) {
   <div class="episode-summary__section">
     <h4 class="episode-summary__section-heading">Key Events</h4>
     <ul class="episode-summary__list">
       @for (event of summary.key_events; track $index) {
-      <li>{{ event }}</li>
+      @if ($index < revealedKeyEvents()) {
+      <li class="episode-summary__reveal-item">{{ event }}</li>
+      }
       }
     </ul>
   </div>
   }
 
-  @if (summary.characters.length) {
-  <div class="episode-summary__section">
+  @if (charactersVisible()) {
+  <div class="episode-summary__section episode-summary__reveal-item">
     <h4 class="episode-summary__section-heading">Characters</h4>
     <ul class="episode-summary__list episode-summary__list--inline">
       @for (character of summary.characters; track $index) {
@@ -27,17 +27,17 @@
   </div>
   }
 
-  @if (summary.chunk_summaries.length) {
+  @if (revealedScenes() > 0) {
   <div class="episode-summary__section">
     <h4 class="episode-summary__section-heading">Scene Breakdown</h4>
     @for (chunk of summary.chunk_summaries; track chunk.chunk_number) {
-    <div class="episode-summary__chunk">
+    @if ($index < revealedScenes()) {
+    <div class="episode-summary__chunk episode-summary__reveal-item">
       <p class="episode-summary__chunk-title">{{ chunk.title }}</p>
       <p class="episode-summary__chunk-text">{{ chunk.summary }}</p>
     </div>
     }
+    }
   </div>
-  }
-
   }
 </div>
