@@ -1,21 +1,29 @@
 .chat-input {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 14px;
-    padding: 22px 24px;
-    border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.03);
+    z-index: 10;
+}
+
+.chat-input--docked {
+    position: sticky;
+    bottom: 1.5rem;
+}
+
+.chat-input__composer {
+    position: relative;
+    border-radius: 1.75rem;
+    border: 0.0625rem solid rgba(255, 255, 255, 0.1);
+    background: rgba(9, 15, 30, 0.88);
+    box-shadow: 0 1.75rem 4.25rem rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(1.125rem);
 }
 
 .chat-input textarea {
     width: 100%;
-    min-height: 98px;
-    resize: vertical;
+    min-height: 5.375rem;
+    resize: none;
     border: none;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.06);
-    padding: 16px 18px;
+    border-radius: 1.75rem;
+    background: transparent;
+    padding: 1.25rem 5.25rem 1.25rem 1.375rem;
     color: #eef2ff;
     font-size: 1rem;
     line-height: 1.6;
@@ -26,8 +34,55 @@
     color: #a4b0d6;
 }
 
+.chat-input__send {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    width: 3rem;
+    height: 3rem;
+    border: none;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    background: #7c9eff;
+    color: #08101e;
+    box-shadow: 0 1.125rem 2.625rem rgba(124, 158, 255, 0.28);
+    transition: transform 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.chat-input__send:hover {
+    transform: translateY(-1px);
+}
+
+.chat-input__send:disabled {
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.08);
+    color: #6b7591;
+    box-shadow: none;
+    transform: none;
+}
+
+.chat-input__send svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    fill: currentColor;
+}
+
 @media (max-width: 720px) {
-    .chat-input {
-        grid-template-columns: 1fr;
+    .chat-input--docked {
+        bottom: 1rem;
+    }
+
+    .chat-input textarea {
+        min-height: 4.875rem;
+        padding-right: 4.75rem;
+    }
+
+    .chat-input__send {
+        right: 0.875rem;
+        bottom: 0.875rem;
+        width: 2.75rem;
+        height: 2.75rem;
     }
 }

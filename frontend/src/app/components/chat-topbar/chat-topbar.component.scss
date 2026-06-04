@@ -1,38 +1,63 @@
 .chat-topbar {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 16px;
+    align-items: start;
+    gap: 1rem;
 }
 
 .brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    display: grid;
+    gap: 0.75rem;
 }
 
-.brand__icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #7c9eff 0%, #57d9ff 100%);
-    display: grid;
-    place-items: center;
-    color: #08101e;
+.brand__eyebrow {
+    font-size: 0.8125rem;
     font-weight: 700;
-    font-size: 1.1rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8fa4da;
 }
 
-.brand__text {
+.brand__copy {
     display: grid;
-    gap: 4px;
+    gap: 0.375rem;
+    max-width: 34rem;
 }
 
-.brand__text strong {
-    font-size: 1.2rem;
+.brand__copy strong {
+    font-size: clamp(1.75rem, 3vw, 2.4rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
 }
 
-.brand__text span {
-    font-size: 0.95rem;
+.brand__copy span {
     color: #b7c2e0;
+    font-size: 1rem;
+    line-height: 1.55;
+}
+
+.brand__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+}
+
+.brand__tags span {
+    padding: 0.5rem 0.9rem;
+    border: 0.0625rem solid rgba(255, 255, 255, 0.08);
+    border-radius: 999rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: #d8e0f7;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 720px) {
+    .chat-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .brand__copy strong {
+        font-size: 1.7rem;
+    }
 }

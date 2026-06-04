@@ -16,6 +16,7 @@
 .message__avatar {
     width: 40px;
     height: 40px;
+    flex: 0 0 40px;
     border-radius: 50%;
     display: grid;
     place-items: center;
@@ -25,12 +26,15 @@
 }
 
 .message__bubble {
+    flex: 1 1 auto;
+    min-width: 0;
     padding: 18px 20px;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: #e3e8ff;
     line-height: 1.7;
+    overflow-wrap: anywhere;
 }
 
 .message--assistant .message__bubble {

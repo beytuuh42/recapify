@@ -85,6 +85,19 @@ describe('ChatInputComponent', () => {
     expect(logger.debug).toHaveBeenCalledWith('Ignored summary submission while chat is busy');
   });
 
+  it('ignores empty submissions', () => {
+    fixture.detectChanges();
+
+    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+    textarea.value = '   ';
+
+    fixture.componentInstance.send(textarea);
+
+    expect(llmService.getSummary).not.toHaveBeenCalled();
+    expect(chatService.messages()).toHaveLength(1);
+    expect(logger.debug).toHaveBeenCalledWith('Ignored empty summary submission');
+  });
+
   it('adds an error message and clears busy state when summary generation fails', () => {
     llmService.getSummary.mockReturnValue(throwError(() => ({
       status: 500,
@@ -113,7 +126,7 @@ describe('ChatInputComponent', () => {
     );
   });
 
-  it('reveals a successful summary over time', () => {
+  it('reveals a successful summary smoothly over time', () => {
     vi.useFakeTimers();
     llmService.getSummary.mockReturnValue(of({ content: 'Hello world' }));
     fixture.detectChanges();
@@ -131,12 +144,53 @@ describe('ChatInputComponent', () => {
     });
     expect(chatService.isBusy()).toBe(false);
 
-    vi.advanceTimersByTime(90);
+    vi.advanceTimersByTime(16);
+
+    expect(chatService.messages().at(-1)?.content.length).toBeGreaterThan(0);
+    expect(chatService.messages().at(-1)?.content).not.toBe('Hello world');
+
+    vi.advanceTimersByTime(64);
 
     expect(chatService.messages().at(-1)?.content).toBe('Hello world');
-    expect(logger.info).toHaveBeenCalledWith('Summary reveal completed', {
-      messageId: assistantMessage?.id,
-      wordCount: 2
+  });
+
+  it('submits on Enter', () => {
+    const pendingSummary = new Subject<Summary>();
+    llmService.getSummary.mockReturnValue(pendingSummary.asObservable());
+    fixture.detectChanges();
+
+    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+    textarea.value = 'summarize Severance season 1 episode 1';
+
+    const enterEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true
     });
+
+    textarea.dispatchEvent(enterEvent);
+    fixture.detectChanges();
+
+    expect(enterEvent.defaultPrevented).toBe(true);
+    expect(llmService.getSummary).toHaveBeenCalledWith('summarize Severance season 1 episode 1');
+  });
+
+  it('keeps Shift+Enter for multiline input', () => {
+    fixture.detectChanges();
+
+    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+
+    textarea.value = 'line 1';
+    const shiftEnterEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true
+    });
+
+    textarea.dispatchEvent(shiftEnterEvent);
+
+    expect(shiftEnterEvent.defaultPrevented).toBe(false);
+    expect(llmService.getSummary).not.toHaveBeenCalled();
   });
 });

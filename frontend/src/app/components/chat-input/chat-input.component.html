@@ -1,4 +1,20 @@
-<footer class="chat-input">
-  <textarea #messageInput placeholder="Type a message..." rows="1"></textarea>
-  <button (click)="send(messageInput)" [disabled]="isBusy()" type="button" class="btn btn--primary">Send</button>
+<footer class="chat-input" [class.chat-input--docked]="hasConversation()">
+  <div class="chat-input__composer">
+    <textarea
+      #messageInput
+      placeholder="Type a message..."
+      rows="1"
+      (keydown)="handleKeydown($event, messageInput)"
+    ></textarea>
+    <button
+      (click)="send(messageInput)"
+      [disabled]="isBusy()"
+      type="button"
+      class="chat-input__send"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 11.5 19.5 4l-4 16-3.9-5.1L4 11.5Z" />
+      </svg>
+    </button>
+  </div>
 </footer>

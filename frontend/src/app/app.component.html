@@ -1,7 +1,15 @@
 <div class="chat-shell">
-  <div class="chat-layout">
-    <app-chat-topbar />
-    <app-chat-window />
+  <div
+    class="chat-layout"
+    [class.chat-layout--idle]="!hasConversation()"
+    [class.chat-layout--active]="hasConversation()"
+  >
+    <div class="chat-layout__top-spacer" aria-hidden="true"></div>
+    <div class="chat-stage">
+      <app-chat-topbar />
+      <app-chat-window />
+    </div>
+    <div class="chat-layout__middle-spacer" aria-hidden="true"></div>
     <app-chat-input />
   </div>
 </div>
