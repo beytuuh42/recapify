@@ -3,7 +3,11 @@
   <div class="message__avatar">{{ avatar }}</div>
   }
   <div class="message__bubble">
+    @if (summary) {
+    <app-episode-summary [summary]="summary" />
+    } @else {
     <p>{{ text }}</p>
+    }
   </div>
   @if (role === Role.user) {
   <div class="message__avatar">{{ avatar }}</div>

@@ -5,7 +5,15 @@ import { ChatInputComponent } from './chat-input.component';
 import { ChatService } from '../../services/chat.service';
 import { LlmService } from '../../services/llm.service';
 import { AppLoggerService } from '../../services/app-logger.service';
-import { Role, Summary } from '../../models/summary.model';
+import { EpisodeSummary, Role } from '../../models/summary.model';
+
+const mockSummary: EpisodeSummary = {
+  title: 'Breaking Bad S1E1',
+  final_summary: 'Walter starts cooking meth.',
+  key_events: ['Walter begins his criminal journey'],
+  characters: ['Walter White', 'Jesse Pinkman'],
+  chunk_summaries: []
+};
 
 describe('ChatInputComponent', () => {
   let fixture: ComponentFixture<ChatInputComponent>;
@@ -40,12 +48,8 @@ describe('ChatInputComponent', () => {
     chatService = TestBed.inject(ChatService);
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it('submits the textarea value and marks chat as busy while waiting', () => {
-    const pendingSummary = new Subject<Summary>();
+    const pendingSummary = new Subject<EpisodeSummary>();
     llmService.getSummary.mockReturnValue(pendingSummary.asObservable());
     fixture.detectChanges();
 
@@ -126,9 +130,8 @@ describe('ChatInputComponent', () => {
     );
   });
 
-  it('reveals a successful summary smoothly over time', () => {
-    vi.useFakeTimers();
-    llmService.getSummary.mockReturnValue(of({ content: 'Hello world' }));
+  it('adds a structured summary message on successful response', () => {
+    llmService.getSummary.mockReturnValue(of(mockSummary));
     fixture.detectChanges();
 
     const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
@@ -140,22 +143,14 @@ describe('ChatInputComponent', () => {
     expect(assistantMessage).toMatchObject({
       role: Role.assistant,
       avatar: 'A',
-      content: ''
+      content: '',
+      summary: mockSummary
     });
     expect(chatService.isBusy()).toBe(false);
-
-    vi.advanceTimersByTime(16);
-
-    expect(chatService.messages().at(-1)?.content.length).toBeGreaterThan(0);
-    expect(chatService.messages().at(-1)?.content).not.toBe('Hello world');
-
-    vi.advanceTimersByTime(64);
-
-    expect(chatService.messages().at(-1)?.content).toBe('Hello world');
   });
 
   it('submits on Enter', () => {
-    const pendingSummary = new Subject<Summary>();
+    const pendingSummary = new Subject<EpisodeSummary>();
     llmService.getSummary.mockReturnValue(pendingSummary.asObservable());
     fixture.detectChanges();
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Summary } from '../models/summary.model';
+import { EpisodeSummary } from '../models/summary.model';
 import { AppLoggerService } from './app-logger.service';
 import { tap } from 'rxjs';
 
@@ -23,12 +23,13 @@ export class LlmService {
       textLength: text.length
     });
 
-    return this.http.post<Summary>(`${this.apiUrl}api/v1/llm/summary`, text).pipe(
+    return this.http.post<EpisodeSummary>(`${this.apiUrl}api/v1/llm/summary`, text).pipe(
       tap({
         next: (summary) => {
           this.logger.info('Episode summary received', {
             durationMs: Math.round(performance.now() - startedAt),
-            summaryLength: summary.content.length
+            finalSummaryLength: summary.final_summary.length,
+            keyEventsCount: summary.key_events.length
           });
         },
         error: (err) => {

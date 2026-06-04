@@ -1,0 +1,70 @@
+.episode-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  &__recap {
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  &__section-heading {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+  }
+
+  &__list {
+    margin: 0;
+    padding-left: 1.25rem;
+
+    &--inline {
+      display: flex;
+      flex-wrap: wrap;
+      list-style: none;
+      padding: 0;
+      gap: 0.4rem;
+
+      li {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 4px;
+        padding: 0.15rem 0.5rem;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  &__chunk {
+    border-left: 2px solid rgba(255, 255, 255, 0.15);
+    padding-left: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__chunk-title {
+    margin: 0 0 0.2rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  &__chunk-text {
+    margin: 0;
+    font-size: 0.875rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+}

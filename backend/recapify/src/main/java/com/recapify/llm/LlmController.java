@@ -17,10 +17,11 @@ public class LlmController {
     private final LlmService llmService;
 
     @PostMapping("/summary")
-    ResponseEntity<Summary> createSummary(@RequestBody String text) {
+    ResponseEntity<SummaryResponse> createSummary(@RequestBody String text) {
         log.info("Summary request received textLength={}", text.length());
-        Summary summary = llmService.getSummary(text);
-        log.info("Summary request completed summaryLength={}", summary.content().length());
+        SummaryResponse summary = llmService.getSummary(text);
+        log.info("Summary request completed finalSummaryLength={} keyEventsCount={}",
+                summary.final_summary().length(), summary.key_events().size());
         return ResponseEntity.ok(summary);
     }
 }

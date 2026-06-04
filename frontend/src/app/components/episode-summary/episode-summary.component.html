@@ -1,0 +1,39 @@
+<div class="episode-summary">
+  <h3 class="episode-summary__title">{{ summary.title }}</h3>
+
+  <p class="episode-summary__recap">{{ summary.final_summary }}</p>
+
+  @if (summary.key_events.length) {
+  <div class="episode-summary__section">
+    <h4 class="episode-summary__section-heading">Key Events</h4>
+    <ul class="episode-summary__list">
+      @for (event of summary.key_events; track $index) {
+      <li>{{ event }}</li>
+      }
+    </ul>
+  </div>
+  }
+
+  @if (summary.characters.length) {
+  <div class="episode-summary__section">
+    <h4 class="episode-summary__section-heading">Characters</h4>
+    <ul class="episode-summary__list episode-summary__list--inline">
+      @for (character of summary.characters; track $index) {
+      <li>{{ character }}</li>
+      }
+    </ul>
+  </div>
+  }
+
+  @if (summary.chunk_summaries.length) {
+  <div class="episode-summary__section">
+    <h4 class="episode-summary__section-heading">Scene Breakdown</h4>
+    @for (chunk of summary.chunk_summaries; track chunk.chunk_number) {
+    <div class="episode-summary__chunk">
+      <p class="episode-summary__chunk-title">{{ chunk.title }}</p>
+      <p class="episode-summary__chunk-text">{{ chunk.summary }}</p>
+    </div>
+    }
+  </div>
+  }
+</div>
