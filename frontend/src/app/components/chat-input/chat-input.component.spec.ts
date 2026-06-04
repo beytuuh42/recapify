@@ -143,12 +143,6 @@ describe('ChatInputComponent', () => {
       content: ''
     });
     expect(chatService.isBusy()).toBe(false);
-    expect(logger.info).toHaveBeenCalledWith('Starting summary reveal', {
-      messageId: assistantMessage?.id,
-      summary: {
-        content: 'Hello world'
-      }
-    });
 
     vi.advanceTimersByTime(16);
 

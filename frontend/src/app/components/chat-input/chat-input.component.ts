@@ -68,11 +68,6 @@ export class ChatInputComponent {
       )
     );
 
-    this.logger.info('Starting summary reveal', {
-      messageId: id,
-      summary
-    });
-
     this.chatService.addMessage({ id, role: Role.assistant, avatar: 'A', content: '' });
     this.chatService.setBusy(false);
 
