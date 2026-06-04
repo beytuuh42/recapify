@@ -2,9 +2,13 @@
 
 These items are useful backlog or research ideas, but they are not required before presenting Recapify as a portfolio project.
 
+> **Filed as GitHub issues on 2026-06-05** (#15–#22). Each item below notes its issue number. A related follow-up from PR #14 was also filed as #23.
+
 ## Product Backlog
 
 ### Conversation history sidebar
+
+_Filed as #15._
 
 - Add a sidebar that lets users revisit prior recap conversations.
 - Start with local-only storage if implemented before user accounts.
@@ -16,6 +20,8 @@ Source roadmap items:
 
 ### Database-backed persistence
 
+_Filed as #16._
+
 - Introduce durable persistence for users, conversations, or generated summaries after the product scope justifies it.
 
 Source roadmap items:
@@ -25,6 +31,8 @@ Source roadmap items:
 
 ### User accounts
 
+_Filed as #17._
+
 - Add accounts only if the app grows beyond portfolio/demo scope.
 
 Source roadmap items:
@@ -32,6 +40,8 @@ Source roadmap items:
 - User/account features if the app grows beyond portfolio scope.
 
 ### Expanded recap modes
+
+_Filed as #18._
 
 - Support movie, multi-episode, season, and multi-season summary modes after the single-episode flow is polished.
 
@@ -46,6 +56,8 @@ Source roadmap items:
 
 ### Scene-aware transcript chunking
 
+_Filed as #19._
+
 - Replace fixed transcript chunking with a strategy that better respects scene or narrative boundaries.
 - Compare output quality against the current naive chunking approach.
 
@@ -55,6 +67,8 @@ Source roadmap items:
 
 ### Cache infrastructure
 
+_Filed as #20._
+
 - Introduce a production-grade cache only after cache behavior and deployment needs are clearer.
 
 Source roadmap items:
@@ -63,6 +77,8 @@ Source roadmap items:
 
 ### Model/provider routing
 
+_Filed as #21._
+
 - Add multiple model/provider routing after the current workflow and contracts are cleaner.
 
 Source roadmap items:
@@ -70,6 +86,8 @@ Source roadmap items:
 - Multiple model/provider routing once the current workflow is cleaner.
 
 ### Retrieval-augmented generation
+
+_Filed as #22._
 
 - Explore RAG only if there is a concrete source corpus and evaluation strategy.
 
