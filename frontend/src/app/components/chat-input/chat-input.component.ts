@@ -39,7 +39,7 @@ export class ChatInputComponent {
     this.chatService.setBusy(true);
 
     this.llmService.getSummary(text).subscribe({
-      next: (data: Summary) => this.typeOut(data.content),
+      next: (data: Summary) => this.typeOut(data),
       error: (err) => {
         this.logger.error('Summary submission failed', {
           status: err?.status,
@@ -57,8 +57,9 @@ export class ChatInputComponent {
   }
 
   // Reveal the response in small character batches for smoother motion.
-  private typeOut(text: string) {
+  private typeOut(summary: Summary) {
     const id = crypto.randomUUID();
+    const text = summary.content;
     const characters = Array.from(text);
     const charactersPerTick = Math.max(
       1,
@@ -66,6 +67,11 @@ export class ChatInputComponent {
         (ChatInputComponent.CHARACTERS_PER_SECOND * ChatInputComponent.REVEAL_INTERVAL_MS) / 1000
       )
     );
+
+    this.logger.info('Starting summary reveal', {
+      messageId: id,
+      summary
+    });
 
     this.chatService.addMessage({ id, role: Role.assistant, avatar: 'A', content: '' });
     this.chatService.setBusy(false);
