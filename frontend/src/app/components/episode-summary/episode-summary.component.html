@@ -1,7 +1,9 @@
 <div class="episode-summary">
   <h3 class="episode-summary__title">{{ summary.title }}</h3>
 
-  <p class="episode-summary__recap">{{ summary.final_summary }}</p>
+  <p class="episode-summary__recap">{{ revealedText() }}</p>
+
+  @if (sectionsVisible()) {
 
   @if (summary.key_events.length) {
   <div class="episode-summary__section">
@@ -35,5 +37,7 @@
     </div>
     }
   </div>
+  }
+
   }
 </div>
