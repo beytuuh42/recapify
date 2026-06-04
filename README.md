@@ -183,7 +183,7 @@ LLM_SERVICE_BASEURL=http://ml-dev:8000
 - Subtitle availability and quality depend on OpenSubtitles results.
 - The backend currently acts mainly as an API boundary and service orchestration layer.
 - Focused unit tests now exist for all three services, but broader end-to-end coverage is still limited.
-- Possible next steps include user accounts, multiple conversation history, richer recap output beyond a plain summary, smarter transcript chunking to reduce context loss, more model providers, free-model fallbacks, dynamic model selection based on task, and expanded summary modes such as movie, multi-episode, season, and multi-season recaps.
+- Planned portfolio-focused improvements include richer structured recap presentation, clearer progress feedback during long-running summary generation, backend contract cleanup, and ML workflow separation.
 
 ## Project Structure
 

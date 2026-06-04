@@ -5,6 +5,20 @@
 
 # Claude Code
 .claude/
+.agents/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# ML runtime cache
+ml/app/.cache/
+
+# Frontend dependencies / generated output
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
 
 # OS
 .DS_Store
