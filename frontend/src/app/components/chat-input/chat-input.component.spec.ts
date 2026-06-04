@@ -152,13 +152,6 @@ describe('ChatInputComponent', () => {
     vi.advanceTimersByTime(64);
 
     expect(chatService.messages().at(-1)?.content).toBe('Hello world');
-    expect(logger.info).toHaveBeenCalledWith('Summary reveal completed', {
-      messageId: assistantMessage?.id,
-      summary: {
-        wordCount: 2,
-        characterCount: 'Hello world'.length
-      }
-    });
   });
 
   it('submits on Enter', () => {
