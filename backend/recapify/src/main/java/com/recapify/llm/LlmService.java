@@ -47,7 +47,7 @@ public class LlmService {
         }
     }
 
-    public Summary getSummary(String text) {
+    public SummaryResponse getSummary(String text) {
         long startedAt = System.nanoTime();
         SummaryRequest summaryRequest = getIntent(text);
 
@@ -59,17 +59,17 @@ public class LlmService {
                     summaryRequest.episode(),
                     summaryRequest.language()
             );
-            Summary summary = llmServiceWebClient.post()
+            SummaryResponse summary = llmServiceWebClient.post()
                     .uri("/api/v1/summarize")
                     .headers(this::addRequestIdHeader)
                     .bodyValue(summaryRequest)
                     .retrieve()
                     .bodyToMono(SummaryResponse.class)
-                    .map(res -> new Summary(res.final_summary()))
                     .block();
 
             long durationMs = (System.nanoTime() - startedAt) / 1_000_000;
-            log.info("Episode summary received from ML service summaryLength={} durationMs={}", summary.content().length(), durationMs);
+            log.info("Episode summary received from ML service finalSummaryLength={} keyEventsCount={} durationMs={}",
+                    summary.final_summary().length(), summary.key_events().size(), durationMs);
             return summary;
         } catch (RuntimeException e) {
             long durationMs = (System.nanoTime() - startedAt) / 1_000_000;

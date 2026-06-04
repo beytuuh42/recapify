@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { LlmService } from './llm.service';
 import { AppLoggerService } from './app-logger.service';
+import { EpisodeSummary } from '../models/summary.model';
 import { environment } from '../../environments/environment';
 
 describe('LlmService', () => {
@@ -39,26 +40,33 @@ describe('LlmService', () => {
 
   it('posts summary requests to the backend API and logs success', () => {
     const prompt = 'summarize Breaking Bad season 1 episode 1';
-    const response = 'Walter starts cooking meth.';
-    let responseContent: string | undefined;
+    const mockSummary: EpisodeSummary = {
+      title: 'Breaking Bad S1E1',
+      final_summary: 'Walter starts cooking meth.',
+      key_events: ['Walter begins his criminal journey'],
+      characters: ['Walter White', 'Jesse Pinkman'],
+      chunk_summaries: []
+    };
+    let receivedSummary: EpisodeSummary | undefined;
 
     service.getSummary(prompt).subscribe((summary) => {
-      responseContent = summary.content;
+      receivedSummary = summary;
     });
 
     const req = httpTesting.expectOne(`${environment.apiUrl}api/v1/llm/summary`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toBe(prompt);
 
-    req.flush({ content: response });
+    req.flush(mockSummary);
 
-    expect(responseContent).toBe(response);
+    expect(receivedSummary).toEqual(mockSummary);
     expect(logger.info).toHaveBeenCalledWith('Requesting episode summary', {
       textLength: prompt.length
     });
     expect(logger.info).toHaveBeenCalledWith('Episode summary received', {
       durationMs: expect.any(Number),
-      summaryLength: response.length
+      finalSummaryLength: mockSummary.final_summary.length,
+      keyEventsCount: mockSummary.key_events.length
     });
   });
 

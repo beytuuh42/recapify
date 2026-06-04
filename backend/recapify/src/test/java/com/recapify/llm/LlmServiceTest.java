@@ -52,12 +52,12 @@ class LlmServiceTest {
         String summaryJson = """
                 {"title":"Pilot","final_summary":"Walter starts cooking meth.","key_events":[],"characters":[],"chunk_summaries":[]}
                 """;
-        Summary expectedSummary = new Summary("Walter starts cooking meth.");
+        SummaryResponse expectedSummary = new SummaryResponse("Pilot", "Walter starts cooking meth.", List.of(), List.of(), List.of());
         RecordingExchangeFunction exchange = new RecordingExchangeFunction(intentJson, summaryJson);
         LlmService service = new LlmService(WebClient.builder().exchangeFunction(exchange).build());
         MDC.put("requestId", requestId);
 
-        Summary summary = service.getSummary(prompt);
+        SummaryResponse summary = service.getSummary(prompt);
 
         ClientRequest intentRequest = exchange.requests().get(0);
         ClientRequest summaryRequest = exchange.requests().get(1);

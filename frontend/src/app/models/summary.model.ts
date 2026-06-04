@@ -14,8 +14,21 @@ export interface Message {
     role: Role;
     avatar: string;
     content: string;
+    summary?: EpisodeSummary;
 }
 
-export interface Summary {
-    content: string;
+export interface ChunkSummary {
+    chunk_number: number;
+    title: string;
+    summary: string;
+    key_events: string[];
+    characters: string[];
+}
+
+export interface EpisodeSummary {
+    title: string;
+    final_summary: string;
+    key_events: string[];
+    characters: string[];
+    chunk_summaries: ChunkSummary[];
 }
