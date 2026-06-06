@@ -1,5 +1,6 @@
 package com.recapify.llm;
 
+import com.recapify.llm.dto.SummaryResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 

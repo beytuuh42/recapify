@@ -1,4 +1,4 @@
-package com.recapify.llm;
+package com.recapify.llm.dto;
 
 import java.util.List;
 
