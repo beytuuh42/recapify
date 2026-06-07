@@ -1,5 +1,7 @@
 package com.recapify.llm.client;
 
+import com.recapify.llm.ContentUnavailableException;
+import com.recapify.llm.MlServiceUnavailableException;
 import com.recapify.llm.dto.IntentRequest;
 import com.recapify.llm.dto.SummaryRequest;
 import com.recapify.llm.dto.SummaryResponse;
@@ -9,6 +11,7 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
@@ -66,12 +69,18 @@ public class MlServiceClient {
                     .headers(this::addRequestIdHeader)
                     .bodyValue(summaryRequest)
                     .retrieve()
+                    .onStatus(status -> status.is4xxClientError(), response ->
+                            response.bodyToMono(MlErrorBody.class)
+                                    .map(body -> ContentUnavailableException.from(
+                                            body != null ? body.detail() : null, summaryRequest)))
+                    .onStatus(status -> status.is5xxServerError(), response ->
+                            Mono.just(new MlServiceUnavailableException("ML service is currently unavailable")))
                     .bodyToMono(SummaryResponse.class)
                     .block();
 
             long durationMs = (System.nanoTime() - startedAt) / 1_000_000;
             log.info("Episode summary received from ML service finalSummaryLength={} keyEventsCount={} durationMs={}",
-                    summary.final_summary().length(), summary.key_events().size(), durationMs);
+                    summary.finalSummary().length(), summary.keyEvents().size(), durationMs);
             return summary;
         } catch (RuntimeException e) {
             long durationMs = (System.nanoTime() - startedAt) / 1_000_000;

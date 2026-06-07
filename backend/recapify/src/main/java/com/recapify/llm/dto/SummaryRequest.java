@@ -1,4 +1,11 @@
 package com.recapify.llm.dto;
 
-public record SummaryRequest(String title, String media_type, Integer season, Integer episode, String language) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record SummaryRequest(
+        String title,
+        @JsonProperty("media_type") String mediaType,
+        Integer season,
+        Integer episode,
+        String language) {
 }

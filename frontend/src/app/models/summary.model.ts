@@ -1,8 +1,6 @@
-export interface SummaryRequest {
-    title: string;
-    season: number;
-    episode: number;
-    language: string;
+export interface ErrorResponse {
+    error: string;
+    message: string;
 }
 
 export enum Role {

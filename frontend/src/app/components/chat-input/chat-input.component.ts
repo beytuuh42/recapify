@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { LlmService } from '../../services/llm.service';
-import { EpisodeSummary, Role } from '../../models/summary.model';
+import { EpisodeSummary, ErrorResponse, Role } from '../../models/summary.model';
 import { ChatService } from '../../services/chat.service';
 import { AppLoggerService } from '../../services/app-logger.service';
 
@@ -43,11 +43,13 @@ export class ChatInputComponent {
           status: err?.status,
           statusText: err?.statusText
         }, err);
+        const errorResponse: ErrorResponse | undefined = err?.error;
+        const message = errorResponse?.message ?? 'Something went wrong. Please try again.';
         this.chatService.addMessage({
           id: crypto.randomUUID(),
           role: Role.assistant,
           avatar: 'A',
-          content: 'Sorry, something went wrong while generating the summary. Please try again.'
+          content: message
         });
         this.chatService.setBusy(false);
       },
@@ -62,7 +64,6 @@ export class ChatInputComponent {
       content: '',
       summary
     });
-    this.chatService.setBusy(false);
   }
 
   handleKeydown(event: KeyboardEvent, textarea: HTMLTextAreaElement) {

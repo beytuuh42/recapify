@@ -22,7 +22,7 @@ public class LlmController {
         log.info("Summary request received textLength={}", text.length());
         SummaryResponse summary = llmService.getSummary(text);
         log.info("Summary request completed finalSummaryLength={} keyEventsCount={}",
-                summary.final_summary().length(), summary.key_events().size());
+                summary.finalSummary().length(), summary.keyEvents().size());
         return ResponseEntity.ok(summary);
     }
 }

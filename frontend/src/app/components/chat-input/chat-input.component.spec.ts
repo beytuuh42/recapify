@@ -118,7 +118,7 @@ describe('ChatInputComponent', () => {
     expect(chatService.messages().at(-1)).toMatchObject({
       role: Role.assistant,
       avatar: 'A',
-      content: 'Sorry, something went wrong while generating the summary. Please try again.'
+      content: 'Something went wrong. Please try again.'
     });
     expect(logger.error).toHaveBeenCalledWith(
       'Summary submission failed',
@@ -146,7 +146,7 @@ describe('ChatInputComponent', () => {
       content: '',
       summary: mockSummary
     });
-    expect(chatService.isBusy()).toBe(false);
+    expect(chatService.isBusy()).toBe(true);
   });
 
   it('submits on Enter', () => {

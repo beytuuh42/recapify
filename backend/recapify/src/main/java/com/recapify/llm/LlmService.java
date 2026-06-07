@@ -24,7 +24,7 @@ public class LlmService {
         SummaryResponse summary = mlServiceClient.fetchSummary(summaryRequest);
         long durationMs = (System.nanoTime() - startedAt) / 1_000_000;
         log.info("Summary workflow completed finalSummaryLength={} keyEventsCount={} durationMs={}",
-                summary.final_summary().length(), summary.key_events().size(), durationMs);
+                summary.finalSummary().length(), summary.keyEvents().size(), durationMs);
         return summary;
     }
 }
