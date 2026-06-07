@@ -2,6 +2,7 @@ import logging
 import os
 import time
 
+import google.api_core.exceptions
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langsmith import Client
 
@@ -35,7 +36,11 @@ class LlmClient:
             ChatGoogleGenerativeAI(model=chunk_model, api_key=api_key)
             .with_structured_output(ChunkSummary)
             .with_retry(
-                retry_if_exception_type=(Exception,),
+                retry_if_exception_type=(
+                    google.api_core.exceptions.ServiceUnavailable,
+                    google.api_core.exceptions.InternalServerError,
+                    google.api_core.exceptions.ResourceExhausted,
+                ),
                 stop_after_attempt=5,
             )
         )
@@ -65,7 +70,7 @@ class LlmClient:
     def _invoke_structured(self, chain, prompt):
         try:
             return chain.invoke(prompt)
-        except Exception as e:
+        except google.api_core.exceptions.GoogleAPICallError as e:
             raise ModelUnavailableError(
                 code=getattr(e, "code", 500),
                 status=getattr(e, "status", "INTERNAL"),
@@ -107,7 +112,7 @@ class LlmClient:
             duration_ms = round((time.perf_counter() - started_at) * 1000)
             logger.info("Chunk model completed chunkCount=%s durationMs=%s", len(summaries), duration_ms)
             return summaries
-        except Exception as e:
+        except google.api_core.exceptions.GoogleAPICallError as e:
             duration_ms = round((time.perf_counter() - started_at) * 1000)
             logger.exception("Chunk model failed durationMs=%s", duration_ms)
             raise ModelUnavailableError(
