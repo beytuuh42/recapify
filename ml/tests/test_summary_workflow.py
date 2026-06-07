@@ -10,10 +10,6 @@ sys.path.insert(0, str(APP_DIR))
 
 # --- Mock classes ---
 
-class _FakeGoogleAPICallError(Exception):
-    pass
-
-
 class _FakeChatGoogleGenerativeAI:
     def __init__(self, **kwargs):
         pass
@@ -36,21 +32,6 @@ class _FakeLangsmithClient:
 
 
 # --- Mock modules and variables ---
-
-if "google" not in sys.modules:
-    sys.modules["google"] = types.ModuleType("google")
-if "google.api_core" not in sys.modules:
-    _gac = types.ModuleType("google.api_core")
-    sys.modules["google.api_core"] = _gac
-    sys.modules["google"].api_core = _gac
-if "google.api_core.exceptions" not in sys.modules:
-    _gac_exc = types.ModuleType("google.api_core.exceptions")
-    _gac_exc.GoogleAPICallError = _FakeGoogleAPICallError
-    _gac_exc.ServiceUnavailable = _FakeGoogleAPICallError
-    _gac_exc.InternalServerError = _FakeGoogleAPICallError
-    _gac_exc.ResourceExhausted = _FakeGoogleAPICallError
-    sys.modules["google.api_core.exceptions"] = _gac_exc
-    sys.modules["google.api_core"].exceptions = _gac_exc
 
 for mod_name in ["opensubtitlescom", "srt", "dotenv"]:
     if mod_name not in sys.modules:
