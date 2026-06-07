@@ -4,24 +4,11 @@ from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, PositiveInt
 
 
-class LLMProvider(str, Enum):
-    GEMINI = "gemini"
-    OPENAI = "openai"
-
-
 class MediaType(str, Enum):
     MOVIE = "movie"
     TV_SHOW = "tv_show"
     ANIME = "anime"
     OTHER = "other"
-
-
-class Transcript(BaseModel):
-    text: str = Field(
-        description="Raw transcript text (e.g., subtitle/SRT-derived dialogue or screenplay text)."
-    )
-
-
 class TranscriptChunk(BaseModel):
     chunk_number: int = Field(
         description="Sequential index of the chunk in chronological order (starting from 1)."

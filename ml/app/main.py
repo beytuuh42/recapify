@@ -5,27 +5,19 @@ load_dotenv()
 import logging
 import time
 import uuid
-from typing import List
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from models import (
-    LLMProvider,
-    EpisodeSummary,
-    TranscriptChunk,
-    ChunkSummary,
-    SummarizeRequest,
-)
-from LLMClient import LLMClient
+from models import EpisodeSummary, SummarizeRequest
+from llm_client import LlmClient
 from srt_handler import SrtHandler
-
-from errors import ModelUnavailableError
-import cache
+from summary_workflow import run_summary
+from errors import ModelUnavailableError, SubtitleNotFoundError
 from logging_config import configure_logging, request_id
 
 configure_logging()
 logger = logging.getLogger(__name__)
 app = FastAPI()
-llm = LLMClient(LLMProvider.GEMINI, merge_model="gemini-2.5-flash")
+llm_client = LlmClient(merge_model="gemini-2.5-flash")
 srt_handler = SrtHandler()
 
 # Raw model kept only for the /api/v1/chat testing endpoint.
@@ -82,15 +74,15 @@ def get_subtitle(
         episode,
         language,
     )
-    srt = srt_handler.find_subtitle(title, season, episode, language)
-    logger.info("Subtitle search completed resultCount=%s", len(getattr(srt, "data", srt)))
-    return srt
+    result = srt_handler.search_subtitles(title, season, episode, language)
+    logger.info("Subtitle search completed resultCount=%s", len(getattr(result, "data", result)))
+    return result
 
 
 @app.post("/api/v1/intent", response_model=SummarizeRequest)
 def extract_intent(message: str) -> SummarizeRequest:
     logger.info("Intent extraction requested messageLength=%s", len(message))
-    intent = llm.extract_intent(message)
+    intent = llm_client.extract_intent(message)
     logger.info(
         "Intent extraction completed title=%s season=%s episode=%s language=%s",
         intent.title,
@@ -111,49 +103,18 @@ def chat_with_llm(message: str):
 
 @app.post("/api/v1/summarize", response_model=EpisodeSummary)
 def create_summary(request: SummarizeRequest) -> EpisodeSummary:
-    started_at = time.perf_counter()
-    logger.info(
-        "Summary requested title=%s season=%s episode=%s language=%s",
-        request.title,
-        request.season,
-        request.episode,
-        request.language,
-    )
-
-    cached = cache.read(
-        request.title, request.season, request.episode, request.language
-    )
-    if cached:
-        logger.info("Summary cache hit")
-        return EpisodeSummary.model_validate(cached)
-
-    logger.info("Summary cache miss")
-    chunks: List[TranscriptChunk] = srt_handler.subtitles_to_chunks(
-        srt_handler.fetch_subtitle(
-            request.title, request.season, request.episode, request.language
-        )
-    )
-    logger.info("Subtitle chunks prepared chunkCount=%s", len(chunks))
-
     try:
-        chunk_summaries: List[ChunkSummary] = llm.summarize_chunks(chunks)
+        return run_summary(request, llm_client, srt_handler)
+    except SubtitleNotFoundError as e:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "subtitle_not_found",
+                "title": e.title,
+                "season": e.season,
+                "episode": e.episode,
+                "language": e.language,
+            },
+        )
     except ModelUnavailableError as e:
-        logger.exception("Chunk summarization failed")
         raise HTTPException(status_code=503, detail=str(e))
-    logger.info("Chunk summarization completed chunkSummaryCount=%s", len(chunk_summaries))
-
-    episode_summary = llm.merge_chunk_summaries(chunk_summaries)
-    logger.info(
-        "Chunk summary merge completed finalSummaryLength=%s",
-        len(episode_summary.final_summary),
-    )
-    cache.write(
-        request.title,
-        request.season,
-        request.episode,
-        request.language,
-        episode_summary.model_dump(mode="json"),
-    )
-    duration_ms = round((time.perf_counter() - started_at) * 1000)
-    logger.info("Summary completed durationMs=%s", duration_ms)
-    return episode_summary

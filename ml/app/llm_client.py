@@ -2,12 +2,10 @@ import logging
 import os
 import time
 
-from google.genai.errors import ServerError
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langsmith import Client
 
 from models import (
-    LLMProvider,
     TranscriptChunk,
     EpisodeSummary,
     ChunkSummary,
@@ -18,33 +16,26 @@ from errors import ModelUnavailableError
 logger = logging.getLogger(__name__)
 
 
-class LLMClient:
+class LlmClient:
     def __init__(
         self,
-        provider: LLMProvider,
+        intent_model: str = "gemma-4-31b-it",
         chunk_model: str = "gemini-3.1-flash-lite",
         merge_model: str = "gemini-3-flash",
-        intent_model: str = "gemma-4-31b-it",
     ):
-        if provider != LLMProvider.GEMINI:
-            raise ValueError(f"Unsupported LLM provider: {provider}")
-
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
             raise ValueError("GOOGLE_API_KEY is not configured.")
 
-        self.provider = provider
         self.chunk_model = chunk_model
         self.merge_model = merge_model
         self.intent_model = intent_model
-
-        # TODO: add content class for dynamic model calling
 
         chunk_model_chain = (
             ChatGoogleGenerativeAI(model=chunk_model, api_key=api_key)
             .with_structured_output(ChunkSummary)
             .with_retry(
-                retry_if_exception_type=(ServerError,),
+                retry_if_exception_type=(Exception,),
                 stop_after_attempt=5,
             )
         )
@@ -74,11 +65,11 @@ class LLMClient:
     def _invoke_structured(self, chain, prompt):
         try:
             return chain.invoke(prompt)
-        except ServerError as e:
+        except Exception as e:
             raise ModelUnavailableError(
-                code=e.code,
-                status=e.status,
-                message=e.message,
+                code=getattr(e, "code", 500),
+                status=getattr(e, "status", "INTERNAL"),
+                message=str(e),
             ) from e
 
     def extract_intent(self, message: str) -> SummarizeRequest:
@@ -94,7 +85,6 @@ class LLMClient:
         started_at = time.perf_counter()
         [variable] = self._chunk_prompt.input_variables
 
-        # TODO: verify if these params are needed for the prompt
         inputs = [
             {
                 variable: (
@@ -117,13 +107,13 @@ class LLMClient:
             duration_ms = round((time.perf_counter() - started_at) * 1000)
             logger.info("Chunk model completed chunkCount=%s durationMs=%s", len(summaries), duration_ms)
             return summaries
-        except ServerError as e:
+        except Exception as e:
             duration_ms = round((time.perf_counter() - started_at) * 1000)
             logger.exception("Chunk model failed durationMs=%s", duration_ms)
             raise ModelUnavailableError(
-                code=e.code,
-                status=e.status,
-                message=e.message,
+                code=getattr(e, "code", 500),
+                status=getattr(e, "status", "INTERNAL"),
+                message=str(e),
             ) from e
 
     def merge_chunk_summaries(
