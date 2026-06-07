@@ -4,7 +4,7 @@
   <app-message-bubble [role]="message.role" [avatar]="message.avatar" [text]="message.content" [summary]="message.summary" (animationComplete)="chatService.setBusy(false)" />
   }
 
-  @if (isBusy()) {
+  @if (isBusy() && !messages().at(-1)?.summary) {
   <app-typing-indicator />
   }
 
