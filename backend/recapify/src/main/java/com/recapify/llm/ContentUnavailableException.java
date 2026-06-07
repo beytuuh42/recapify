@@ -1,5 +1,8 @@
 package com.recapify.llm;
 
+import com.recapify.llm.client.MlErrorDetail;
+import com.recapify.llm.dto.SummaryRequest;
+
 public class ContentUnavailableException extends RuntimeException {
 
     private final String title;
@@ -19,4 +22,16 @@ public class ContentUnavailableException extends RuntimeException {
     public Integer season() { return season; }
     public Integer episode() { return episode; }
     public String language() { return language; }
+
+    public static RuntimeException from(MlErrorDetail detail, SummaryRequest fallback) {
+        if (detail != null && "subtitle_not_found".equals(detail.code())) {
+            return new ContentUnavailableException(
+                    detail.title() != null ? detail.title() : fallback.title(),
+                    detail.season() != null ? detail.season() : fallback.season(),
+                    detail.episode() != null ? detail.episode() : fallback.episode(),
+                    detail.language() != null ? detail.language() : fallback.language()
+            );
+        }
+        return new MlServiceUnavailableException("ML service returned an unexpected error");
+    }
 }

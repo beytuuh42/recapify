@@ -23,9 +23,6 @@ public class MlServiceClient {
 
     private final WebClient llmServiceWebClient;
 
-    private record MlErrorDetail(String code, String title, Integer season, Integer episode, String language) {}
-    private record MlErrorBody(MlErrorDetail detail) {}
-
     public SummaryRequest extractIntent(String text) {
         long startedAt = System.nanoTime();
         IntentRequest req = new IntentRequest(text);
@@ -74,7 +71,8 @@ public class MlServiceClient {
                     .retrieve()
                     .onStatus(status -> status.is4xxClientError(), response ->
                             response.bodyToMono(MlErrorBody.class)
-                                    .map(body -> parseClientError(body, summaryRequest)))
+                                    .map(body -> ContentUnavailableException.from(
+                                            body != null ? body.detail() : null, summaryRequest)))
                     .onStatus(status -> status.is5xxServerError(), response ->
                             Mono.just(new MlServiceUnavailableException("ML service is currently unavailable")))
                     .bodyToMono(SummaryResponse.class)
@@ -89,19 +87,6 @@ public class MlServiceClient {
             log.error("Episode summary request to ML service failed durationMs={}", durationMs, e);
             throw e;
         }
-    }
-
-    private RuntimeException parseClientError(MlErrorBody body, SummaryRequest request) {
-        MlErrorDetail d = body != null ? body.detail() : null;
-        if (d != null && "subtitle_not_found".equals(d.code())) {
-            return new ContentUnavailableException(
-                    d.title() != null ? d.title() : request.title(),
-                    d.season() != null ? d.season() : request.season(),
-                    d.episode() != null ? d.episode() : request.episode(),
-                    d.language() != null ? d.language() : request.language()
-            );
-        }
-        return new MlServiceUnavailableException("ML service returned an unexpected error");
     }
 
     private void addRequestIdHeader(HttpHeaders headers) {
