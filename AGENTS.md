@@ -35,8 +35,12 @@ Use OpenSpec as the source of truth for planned work and archived decisions.
 
 - Explore scope with `openspec-explore`.
 - Create change artifacts with `openspec-propose`.
+- Review `tasks.md` with the user before running `openspec-apply-change`.
 - Implement from `tasks.md` with `openspec-apply-change`.
-- Archive completed changes with `openspec-archive-change`.
+- When asked, commit on a feature branch named after the change, push, and open a PR with `gh pr create`. Use the proposal headline as the PR title and a short summary from `proposal.md` as the body.
+- Archive with `openspec-archive-change` after the PR is merged.
+
+To address PR review feedback, fetch comments with `gh pr view <number> --comments` and push fixes as follow-up commits on the same branch.
 
 Do not maintain `.agents/ROADMAP.md`, `.agents/PLAN.md`, or `.agents/STATUS.md`.
 

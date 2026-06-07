@@ -10,6 +10,8 @@ from models import TranscriptChunk
 import srt
 from opensubtitlescom import OpenSubtitles, responses
 
+from errors import SubtitleNotFoundError
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,7 +24,7 @@ class SrtHandler:
             os.getenv("OPEN_SUBTITLES_USER"), os.getenv("OPEN_SUBTITLES_PASSWORD")
         )
 
-    def find_subtitle(
+    def search_subtitles(
         self, title: str, season_number: int, episode_number: int, languages: str = "en"
     ) -> list:
         started_at = time.perf_counter()
@@ -49,12 +51,16 @@ class SrtHandler:
         )
         return response
 
-    def fetch_subtitle(
+    def download_subtitle(
         self, title: str, season_number: int, episode_number: int, languages: str = "en"
     ) -> list:
         started_at = time.perf_counter()
-        response = self.find_subtitle(title, season_number, episode_number, languages)
-        srt = self.subtitles.download_and_parse(response.data[0])
+        response = self.search_subtitles(title, season_number, episode_number, languages)
+
+        if not response.data:
+            raise SubtitleNotFoundError(title, season_number, episode_number, languages)
+
+        srt_content = self.subtitles.download_and_parse(response.data[0])
         duration_ms = round((time.perf_counter() - started_at) * 1000)
         logger.info(
             "Subtitle downloaded title=%s season=%s episode=%s language=%s subtitleCount=%s durationMs=%s",
@@ -62,10 +68,10 @@ class SrtHandler:
             season_number,
             episode_number,
             languages,
-            len(srt),
+            len(srt_content),
             duration_ms,
         )
-        return srt
+        return srt_content
 
     def _clean_subtitle_content(self, content: str) -> str:
         content = content.replace("\n", " ")
