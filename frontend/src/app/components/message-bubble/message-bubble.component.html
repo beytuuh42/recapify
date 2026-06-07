@@ -4,7 +4,7 @@
   }
   <div class="message__bubble">
     @if (summary) {
-    <app-episode-summary [summary]="summary" />
+    <app-episode-summary [summary]="summary" (animationComplete)="animationComplete.emit()" />
     } @else {
     <p>{{ text }}</p>
     }

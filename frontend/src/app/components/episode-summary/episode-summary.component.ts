@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, signal } from '@angular/core';
 import { EpisodeSummary } from '../../models/summary.model';
 
 @Component({
@@ -9,6 +9,7 @@ import { EpisodeSummary } from '../../models/summary.model';
 })
 export class EpisodeSummaryComponent implements OnInit, OnDestroy {
   @Input() summary!: EpisodeSummary;
+  @Output() animationComplete = new EventEmitter<void>();
 
   // Recap text streams at the same rate the chat used previously.
   private static readonly REVEAL_INTERVAL_MS = 16;
@@ -85,6 +86,7 @@ export class EpisodeSummaryComponent implements OnInit, OnDestroy {
 
   private revealScenes() {
     if (!this.summary.chunk_summaries.length) {
+      this.animationComplete.emit();
       return;
     }
 
@@ -93,6 +95,7 @@ export class EpisodeSummaryComponent implements OnInit, OnDestroy {
         this.revealedScenes.update(n => n + 1);
         if (this.revealedScenes() >= this.summary.chunk_summaries.length) {
           stop();
+          this.animationComplete.emit();
         }
       });
     });

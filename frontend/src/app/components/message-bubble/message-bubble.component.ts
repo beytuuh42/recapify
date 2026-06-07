@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { EpisodeSummary, Role } from '../../models/summary.model';
 import { EpisodeSummaryComponent } from '../episode-summary/episode-summary.component';
 
@@ -13,6 +13,7 @@ export class MessageBubbleComponent {
   @Input() avatar = '';
   @Input() text = '';
   @Input() summary?: EpisodeSummary;
+  @Output() animationComplete = new EventEmitter<void>();
 
   readonly Role = Role;
 }

@@ -74,4 +74,18 @@ describe('EpisodeSummaryComponent', () => {
     vi.advanceTimersByTime(450);
     expect(component.revealedScenes()).toBe(2);
   });
+
+  it('emits animationComplete after all reveal phases finish', () => {
+    let emitted = false;
+    component.animationComplete.subscribe(() => { emitted = true; });
+    fixture.detectChanges();
+
+    // recap → key events → characters → scenes
+    vi.advanceTimersByTime(16 * 5);   // recap
+    vi.advanceTimersByTime(320 * 2);  // key events
+    vi.advanceTimersByTime(250);      // characters section beat
+    vi.advanceTimersByTime(250 + 450 * 2); // scene beat + both scenes
+
+    expect(emitted).toBe(true);
+  });
 });
