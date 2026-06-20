@@ -3,6 +3,7 @@ import { LlmService } from '../../services/llm.service';
 import { EpisodeSummary, ErrorResponse, Role } from '../../models/summary.model';
 import { ChatService } from '../../services/chat.service';
 import { AppLoggerService } from '../../services/app-logger.service';
+import { createMessageId } from '../../utils/message-id';
 
 @Component({
   selector: 'app-chat-input',
@@ -32,7 +33,7 @@ export class ChatInputComponent {
       textLength: text.length
     });
 
-    this.chatService.addMessage({ id: crypto.randomUUID(), role: Role.user, avatar: 'U', content: text });
+    this.chatService.addMessage({ id: createMessageId(), role: Role.user, avatar: 'U', content: text });
     textarea.value = '';
     this.chatService.setBusy(true);
 
@@ -46,7 +47,7 @@ export class ChatInputComponent {
         const errorResponse: ErrorResponse | undefined = err?.error;
         const message = errorResponse?.message ?? 'Something went wrong. Please try again.';
         this.chatService.addMessage({
-          id: crypto.randomUUID(),
+          id: createMessageId(),
           role: Role.assistant,
           avatar: 'A',
           content: message
@@ -58,7 +59,7 @@ export class ChatInputComponent {
 
   private showSummary(summary: EpisodeSummary) {
     this.chatService.addMessage({
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: Role.assistant,
       avatar: 'A',
       content: '',

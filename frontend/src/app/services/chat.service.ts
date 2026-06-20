@@ -1,12 +1,13 @@
 import { Injectable, signal } from '@angular/core';
 import { Message, Role } from '../models/summary.model';
+import { createMessageId } from '../utils/message-id';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
   private readonly initialMessage: Message = {
-    id: crypto.randomUUID(),
+    id: createMessageId(),
     role: Role.assistant,
     avatar: 'A',
     content: 'Hello, please provide the title of the tv show as well as its season and episode number that you want a summary of.'
@@ -34,6 +35,6 @@ export class ChatService {
   }
 
   clearMessages(): void {
-    this.messages.set([{ ...this.initialMessage, id: crypto.randomUUID() }]);
+    this.messages.set([{ ...this.initialMessage, id: createMessageId() }]);
   }
 }
