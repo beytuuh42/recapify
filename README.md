@@ -20,9 +20,18 @@ The demo is hosted on Render's free tier. The first request after inactivity can
 
 ## Preview
 
-![Recapify chat preview showing a generated episode summary](docs/recapify-preview-summary.png)
+<img src="docs/recapify-preview-summary.png"
+     alt="Recapify chat preview showing a generated episode summary"
+     width="900">
 
-![Recapify chat preview showing key events, characters, and scene breakdown](docs/recapify-preview-details.png)
+<details>
+<summary>Show structured recap details</summary>
+
+<img src="docs/recapify-preview-details.png"
+     alt="Recapify chat preview showing key events, characters, and scene breakdown"
+     width="900">
+
+</details>
 
 ## Why I Built This
 
