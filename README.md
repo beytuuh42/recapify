@@ -14,9 +14,9 @@ Recapify extracts the media intent, finds subtitle data, summarizes the transcri
 
 ## Live Demo
 
-https://recapify-frontend.onrender.com
+https://recapify.dev
 
-The demo is hosted on Render's free tier. The first request after inactivity can take 30-60 seconds while the services wake up.
+The demo runs on a Docker-enabled AWS EC2 instance behind Caddy-managed HTTPS. The public domain terminates TLS at Caddy, which forwards traffic to the frontend container; backend and ML services stay private on the Docker network.
 
 ## Preview
 
@@ -58,6 +58,7 @@ Episode recaps are useful, but they are often scattered across websites, inconsi
 - Adds request correlation with propagated `X-Request-Id` values across backend and ML logs.
 - Adds frontend observability through Sentry and local browser debugging through Playwright.
 - Runs locally with Docker Compose hot reload across all services.
+- Deploys to AWS EC2 with a single public HTTPS entry point, same-origin API routing, DNS, TLS, and private backend/ML containers.
 
 ## Architecture
 
@@ -146,7 +147,8 @@ This keeps the Java backend close to a typical enterprise API layer while allowi
 | Backend | Java 21, Spring Boot 4, WebClient, Lombok |
 | ML service | Python 3.12, FastAPI, Pydantic, LangChain, LangSmith, Gemini |
 | External APIs | OpenSubtitles, Google Gemini |
-| Runtime | Docker, Docker Compose, Nginx |
+| Runtime | Docker, Docker Compose, Nginx, Caddy |
+| Cloud and deployment | AWS EC2, Linux, DNS, HTTPS/TLS, reverse proxy, containerized services |
 | Observability | Sentry frontend telemetry, request IDs, structured service logs |
 
 ## Demo Flow
@@ -210,7 +212,13 @@ Development ports:
 
 ## Production Deployment
 
-The production Compose profile runs frontend, backend, and ML containers for a single Docker-enabled EC2 instance. The frontend Nginx container is the only public service and proxies `/api/v1/` requests to the backend on the internal Docker network.
+The production Compose profile runs frontend, backend, and ML containers for a single Docker-enabled EC2 instance. Caddy is the public HTTPS entry point for `recapify.dev` and forwards traffic to the frontend container on localhost. The frontend Nginx container serves the Angular app and proxies `/api/v1/` requests to the backend on the internal Docker network.
+
+```text
+Browser -> https://recapify.dev -> Caddy -> frontend-prod Nginx -> backend-prod -> ml-prod
+```
+
+Only ports `80` and `443` are public. The Docker frontend port is bound to localhost for Caddy, while backend and ML services remain internal-only.
 
 See [EC2 production deployment](docs/ec2-production-deployment.md) for setup, secrets, security group ports, smoke checks, logs, rollback, and TLS notes.
 
@@ -280,7 +288,7 @@ LLM_SERVICE_BASEURL=http://ml-dev:8000
 
 ## Current Limitations and Next Steps
 
-- The hosted demo runs on a free tier, so cold starts can make the first request slow.
+- The hosted demo currently runs on a manually operated EC2 instance rather than a managed deployment pipeline.
 - Subtitle availability and quality depend on OpenSubtitles results.
 - The backend currently acts mainly as an API boundary and service orchestration layer.
 - Focused unit tests now exist for all three services, but broader end-to-end coverage is still limited.
