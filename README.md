@@ -1,4 +1,4 @@
-# Recapify (WIP)
+# Recapify
 
 [![CI](https://github.com/beytuuh42/recapify/actions/workflows/ci.yml/badge.svg)](https://github.com/beytuuh42/recapify/actions/workflows/ci.yml)
 
@@ -130,6 +130,13 @@ flowchart LR
 
 </details>
 
+## Design Decisions
+
+Recapify uses a three-service architecture to keep responsibilities separate: Angular handles the chat UI, Spring Boot provides the browser-facing API boundary, and FastAPI contains the AI workflow.
+
+The Spring Boot layer coordinates requests, propagates request IDs, and maps ML-service errors into user-facing responses. The FastAPI service handles AI-specific work such as intent extraction, subtitle retrieval, transcript chunking, LLM summarization, summary merging, and caching.
+
+This keeps the Java backend close to a typical enterprise API layer while allowing the Python service to use AI-focused tooling such as FastAPI, Pydantic, LangChain, LangSmith, and OpenSubtitles directly.
 
 ## Tech Stack
 
@@ -259,7 +266,7 @@ LLM_SERVICE_BASEURL=http://ml-dev:8000
 - Subtitle availability and quality depend on OpenSubtitles results.
 - The backend currently acts mainly as an API boundary and service orchestration layer.
 - Focused unit tests now exist for all three services, but broader end-to-end coverage is still limited.
-- Planned portfolio-focused improvements include richer structured recap presentation, clearer progress feedback during long-running summary generation, backend contract cleanup, and ML workflow separation.
+- Possible next improvements include clearer progress feedback during long-running summary generation, broader end-to-end coverage, and more durable storage for cached summaries.
 
 ## Project Structure
 
