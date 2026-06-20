@@ -4,7 +4,7 @@ import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import * as Sentry from '@sentry/angular';
 
-const apiOrigin = new URL(environment.apiUrl).origin;
+const apiOrigin = new URL(environment.apiUrl, window.location.origin).origin;
 
 Sentry.init({
   dsn: environment.sentryDsn || undefined,
