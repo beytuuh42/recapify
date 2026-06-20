@@ -44,16 +44,54 @@ Episode recaps are useful, but they are often scattered across websites, inconsi
 
 ## Architecture
 
-```text
-User
-  -> Angular frontend
-  -> Spring Boot backend
-  -> FastAPI ML service
-  -> OpenSubtitles + Gemini
-  -> Episode recap
+```mermaid
+flowchart LR
+    user[User] --> frontend[Angular frontend<br/>Chat UI]
+
+    frontend -->|POST /api/v1/llm/summary<br/>Natural-language request| backendController[Spring Boot backend<br/>LlmController]
+
+    backendController --> backendService[LlmService<br/>Workflow orchestration]
+
+    backendService -->|1. Extract intent| backendClient[MlServiceClient<br/>WebClient boundary]
+    backendClient -->|POST /api/v1/intent<br/>X-Request-Id propagated| mlIntent[FastAPI ML service<br/>Intent extraction]
+
+    mlIntent --> langsmithIntent[LangSmith prompt<br/>extract_intent]
+    langsmithIntent --> geminiIntent[Gemini via LangChain<br/>Structured intent output]
+
+    geminiIntent --> backendClient
+
+    backendService -->|2. Generate summary| backendClient
+    backendClient -->|POST /api/v1/summarize<br/>Structured SummaryRequest| mlSummary[FastAPI ML service<br/>Summary workflow]
+
+    mlSummary --> cacheRead[File-based JSON cache<br/>title + season + episode + language]
+
+    cacheRead -->|Cache hit| cachedSummary[Cached EpisodeSummary]
+    cacheRead -->|Cache miss| subtitles[OpenSubtitles<br/>Subtitle search + download]
+
+    subtitles --> transcript[Transcript processing<br/>Clean SRT + chunk text]
+    transcript --> langsmithChunk[LangSmith prompt<br/>summarize_chunk]
+    langsmithChunk --> geminiChunk[Gemini via LangChain<br/>Batched chunk summaries]
+
+    geminiChunk --> langsmithMerge[LangSmith prompt<br/>merge_episode_summary]
+    langsmithMerge --> geminiMerge[Gemini via LangChain<br/>Final structured EpisodeSummary]
+
+    geminiMerge --> cacheWrite[Write JSON cache]
+    cacheWrite --> mlSummary
+    cachedSummary --> mlSummary
+
+    mlSummary -->|EpisodeSummary JSON| backendClient
+    backendClient --> backendService
+    backendService --> backendController
+    backendController -->|Structured JSON response| frontend
+
+    frontend --> recap[Chat-style recap display<br/>final summary, key events, characters, scenes]
+
+    frontend -. errors, traces, logs .-> sentry[Sentry<br/>Frontend telemetry]
+    backendController -. request logs .-> backendLogs[Backend logs<br/>MDC request correlation]
+    backendClient -. outbound ML logs .-> backendLogs
+    mlSummary -. request logs .-> mlLogs[ML service logs<br/>X-Request-Id correlation]
 ```
 
-The Angular frontend owns the chat experience. The Spring Boot backend exposes the frontend-facing API and forwards summary work to the ML service. The FastAPI service owns the AI workflow: it parses intent, fetches subtitles, chunks transcripts, calls Gemini, merges the final summary, and caches completed results.
 
 ## Tech Stack
 
