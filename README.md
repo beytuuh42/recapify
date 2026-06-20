@@ -1,5 +1,7 @@
 # Recapify (WIP)
 
+[![PR CI](https://github.com/beytuuh42/recapify/actions/workflows/pr-ci.yml/badge.svg)](https://github.com/beytuuh42/recapify/actions/workflows/pr-ci.yml)
+
 Recapify is a full-stack AI application that generates concise episode recaps from natural-language requests.
 
 Type something like:
