@@ -33,6 +33,11 @@ model = ChatGoogleGenerativeAI(
 )
 
 
+@app.get("/api/v1/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.middleware("http")
 async def log_api_requests(request: Request, call_next):
     if not request.url.path.startswith("/api/"):

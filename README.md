@@ -208,6 +208,12 @@ Development ports:
 | ML service | http://localhost:8000 |
 | ML API docs | http://localhost:8000/docs |
 
+## Production Deployment
+
+The production Compose profile runs frontend, backend, and ML containers for a single Docker-enabled EC2 instance. The frontend Nginx container is the only public service and proxies `/api/v1/` requests to the backend on the internal Docker network.
+
+See [EC2 production deployment](docs/ec2-production-deployment.md) for setup, secrets, security group ports, smoke checks, logs, rollback, and TLS notes.
+
 ## Testing
 
 Run the focused unit tests from each service directory:
@@ -253,6 +259,18 @@ Frontend production builds generate `src/environments/environment.ts` from envir
 | `SENTRY_DSN` | Enables Sentry telemetry in the frontend | empty |
 | `SENTRY_ENVIRONMENT` | Sentry environment name | `production` |
 | `LLM_SERVICE_BASEURL` | Backend-to-ML service URL | `http://localhost:8000` |
+
+In Docker Compose production, the frontend image is built with same-origin API access:
+
+```text
+FRONTEND_API_URL=/
+```
+
+The frontend Nginx container proxies `/api/v1/` to the backend container, and the backend points to the ML container with:
+
+```text
+LLM_SERVICE_BASEURL=http://ml-prod:8000
+```
 
 In Docker Compose development, the backend points to the ML container with:
 

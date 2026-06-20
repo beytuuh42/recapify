@@ -8,10 +8,19 @@
 .codex/
 .agents/
 
+# Environment files
+.env
+.env.*
+!.env.example
+
 # Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
+ml/.env
+ml/.env.*
+!ml/.env.example
+!ml/.env.prod.example
 
 # ML runtime cache
 ml/app/.cache/
