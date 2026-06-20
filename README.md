@@ -1,6 +1,6 @@
 # Recapify (WIP)
 
-[![PR CI](https://github.com/beytuuh42/recapify/actions/workflows/pr-ci.yml/badge.svg)](https://github.com/beytuuh42/recapify/actions/workflows/pr-ci.yml)
+[![CI](https://github.com/beytuuh42/recapify/actions/workflows/ci.yml/badge.svg)](https://github.com/beytuuh42/recapify/actions/workflows/ci.yml)
 
 Recapify is a full-stack AI application that generates concise episode recaps from natural-language requests.
 
@@ -17,6 +17,12 @@ Recapify extracts the media intent, finds subtitle data, summarizes the transcri
 https://recapify-frontend.onrender.com
 
 The demo is hosted on Render's free tier. The first request after inactivity can take 30-60 seconds while the services wake up.
+
+## Preview
+
+![Recapify chat preview showing a generated episode summary](docs/recapify-preview-summary.png)
+
+![Recapify chat preview showing key events, characters, and scene breakdown](docs/recapify-preview-details.png)
 
 ## Why I Built This
 
@@ -124,7 +130,7 @@ Prerequisites:
 - Git
 - Google API key
 - OpenSubtitles API credentials
-- Optional: LangSmith credentials for prompt and tracing workflows
+- LangSmith access for prompt loading and tracing workflows
 
 Create the ML environment file:
 
