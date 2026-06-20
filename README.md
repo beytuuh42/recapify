@@ -62,6 +62,25 @@ Episode recaps are useful, but they are often scattered across websites, inconsi
 ## Architecture
 
 ```mermaid
+flowchart TB
+    user[User] --> frontend[Angular Frontend<br/>Chat UI + structured recap display]
+
+    frontend -->|POST /api/v1/llm/summary| backend[Spring Boot Backend<br/>API boundary + workflow orchestration]
+
+    backend -->|1. Extract intent<br/>2. Request summary| ml[FastAPI ML Service<br/>AI workflow]
+
+    ml --> subtitles[OpenSubtitles<br/>Subtitle search + download]
+    ml --> llm[Gemini via LangChain<br/>Intent extraction, chunk summaries, final merge]
+    ml --> cache[File-based JSON cache<br/>title + season + episode + language]
+
+    backend -. X-Request-Id .-> ml
+    frontend -. errors, traces, logs .-> sentry[Sentry<br/>Frontend telemetry]
+```
+
+<details>
+<summary>Show detailed workflow</summary>
+
+```mermaid
 flowchart LR
     user[User] --> frontend[Angular frontend<br/>Chat UI]
 
@@ -83,9 +102,9 @@ flowchart LR
     mlSummary --> cacheRead[File-based JSON cache<br/>title + season + episode + language]
 
     cacheRead -->|Cache hit| cachedSummary[Cached EpisodeSummary]
-    cacheRead -->|Cache miss| subtitles[OpenSubtitles<br/>Subtitle search + download]
+    cacheRead -->|Cache miss| subtitles2[OpenSubtitles<br/>Subtitle search + download]
 
-    subtitles --> transcript[Transcript processing<br/>Clean SRT + chunk text]
+    subtitles2 --> transcript[Transcript processing<br/>Clean SRT + chunk text]
     transcript --> langsmithChunk[LangSmith prompt<br/>summarize_chunk]
     langsmithChunk --> geminiChunk[Gemini via LangChain<br/>Batched chunk summaries]
 
@@ -103,11 +122,13 @@ flowchart LR
 
     frontend --> recap[Chat-style recap display<br/>final summary, key events, characters, scenes]
 
-    frontend -. errors, traces, logs .-> sentry[Sentry<br/>Frontend telemetry]
+    frontend -. errors, traces, logs .-> sentry2[Sentry<br/>Frontend telemetry]
     backendController -. request logs .-> backendLogs[Backend logs<br/>MDC request correlation]
     backendClient -. outbound ML logs .-> backendLogs
     mlSummary -. request logs .-> mlLogs[ML service logs<br/>X-Request-Id correlation]
 ```
+
+</details>
 
 
 ## Tech Stack
